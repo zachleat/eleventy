@@ -35,6 +35,7 @@ class UserConfig {
     this.DateTime = DateTime;
     this.dynamicPermalinks = true;
     this.useGitIgnore = true;
+    this.globalData = {};
   }
 
   versionCheck(expected) {
@@ -258,6 +259,10 @@ class UserConfig {
     this.useGitIgnore = !!enabled;
   }
 
+  setData(callbackOrObject) {
+    this.configData = callbackOrObject;
+  }
+
   getMergingConfigObject() {
     return {
       templateFormats: this.templateFormats,
@@ -275,7 +280,8 @@ class UserConfig {
       markdownHighlighter: this.markdownHighlighter,
       libraryOverrides: this.libraryOverrides,
       dynamicPermalinks: this.dynamicPermalinks,
-      useGitIgnore: this.useGitIgnore
+      useGitIgnore: this.useGitIgnore,
+      configData: this.configData
     };
   }
 }

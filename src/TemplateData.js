@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const globby = require("globby");
 const parsePath = require("parse-filepath");
-const lodashset = require("lodash.set");
+const lodashSet = require("lodash.set");
 const lodashMerge = require("lodash.merge");
 const lodashUniq = require("lodash.uniq");
 const TemplateRender = require("./TemplateRender");
@@ -93,6 +93,17 @@ TemplateData.prototype.getObjectPathForDataFile = function(path) {
   return folders.join(".");
 };
 
+TemplateData.prototype.getConfigData = function() {
+  let data = this.config.configData;
+  if (typeof data === "function") {
+    return data();
+  } else if (typeof data === "object") {
+    return data;
+  }
+
+  return {};
+};
+
 TemplateData.prototype.getAllGlobalData = async function() {
   let rawImports = await this.getRawImports();
   let globalData = {};
@@ -102,8 +113,12 @@ TemplateData.prototype.getAllGlobalData = async function() {
     let folders = await this.getObjectPathForDataFile(files[j]);
     debug(`Found global data file ${files[j]} and adding as: ${folders}`);
     let data = await this.getJson(files[j], rawImports);
-    lodashset(globalData, folders, data);
+    lodashSet(globalData, folders, data);
   }
+
+  // add any data set in config
+  lodashMerge(globalData, this.getConfigData());
+
   return globalData;
 };
 
@@ -113,7 +128,7 @@ TemplateData.prototype.getData = async function() {
   if (!this.globalData) {
     let globalJson = await this.getAllGlobalData();
 
-    this.globalData = Object.assign({}, globalJson, rawImports);
+    this.globalData = lodashMerge({}, globalJson, rawImports);
   }
 
   return this.globalData;
@@ -127,8 +142,9 @@ TemplateData.prototype.combineLocalData = async function(localDataPaths) {
   }
   for (let path of localDataPaths) {
     let dataForPath = await this.getJson(path, rawImports, true);
+    // debug("`combineLocalData` (dataForPath) for %o: %O", path, dataForPath);
     lodashMerge(localData, dataForPath);
-    // debug("`combineLocalData` (iterating) for %o: %O", path, localData);
+    // debug("`combineLocalData` (post-merge) for %o: %O", path, localData);
   }
   return localData;
 };
@@ -138,7 +154,7 @@ TemplateData.prototype.getLocalData = async function(templatePath) {
   let importedData = await this.combineLocalData(localDataPaths);
   let globalData = await this.getData();
 
-  let localData = Object.assign({}, globalData, importedData);
+  let localData = lodashMerge({}, globalData, importedData);
   // debug("`getLocalData` for %o: %O", templatePath, localData);
   return localData;
 };
