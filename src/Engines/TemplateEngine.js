@@ -1,6 +1,5 @@
 const fastglob = require("fast-glob");
 const fs = require("fs-extra");
-const parsePath = require("parse-filepath");
 const TemplatePath = require("../TemplatePath");
 const debug = require("debug")("Eleventy:TemplateEngine");
 
@@ -107,7 +106,8 @@ class TemplateEngine {
     }
 
     const cls = require("./" + TemplateEngine.templateKeyMapToClassName[name]);
-    return new cls(name, inputDir);
+    let inst = new cls(name, inputDir);
+    return inst;
   }
 }
 

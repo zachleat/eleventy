@@ -3,6 +3,7 @@ const normalize = require("normalize-path");
 const matter = require("gray-matter");
 
 const TemplateRender = require("./TemplateRender");
+const Benchmark = require("./Benchmark");
 const EleventyError = require("./EleventyError");
 const config = require("./Config");
 const debug = require("debug")("Eleventy:TemplateContent");
@@ -10,6 +11,8 @@ const debugDev = require("debug")("Dev:Eleventy:TemplateContent");
 
 class TemplateContent {
   constructor(inputPath, inputDir) {
+    debugDev("new TemplateContent(%o, %o)", inputPath, inputDir);
+    this.benchmark = new Benchmark();
     this.config = config.getConfig();
     this.inputPath = inputPath;
 
@@ -18,8 +21,10 @@ class TemplateContent {
     } else {
       this.inputDir = false;
     }
+    debugDev("constructor vars init");
 
     this.templateRender = new TemplateRender(this.inputPath, this.inputDir);
+    debugDev("creating this.templateRender");
   }
 
   getInputPath() {

@@ -2,10 +2,11 @@ const parsePath = require("parse-filepath");
 const TemplatePath = require("./TemplatePath");
 const TemplateEngine = require("./Engines/TemplateEngine");
 const config = require("./Config");
-// const debug = require("debug")("Eleventy:TemplateRender");
+const debugDev = require("debug")("Dev:Eleventy:TemplateRender");
 
 // works with full path names or short engine name
 function TemplateRender(tmplPath, inputDir) {
+  debugDev("new TemplateRender(%o, %o)", tmplPath, inputDir);
   if (!tmplPath) {
     throw new Error(
       `TemplateRender requires a tmplPath argument, instead of ${tmplPath}`
@@ -29,6 +30,7 @@ function TemplateRender(tmplPath, inputDir) {
 TemplateRender.prototype.init = function(engineNameOrPath) {
   this.engineName = TemplateRender.cleanupEngineName(engineNameOrPath);
   this.engine = TemplateEngine.getEngine(this.engineName, this.inputDir);
+  debugDev("init engine");
 };
 
 TemplateRender.cleanupEngineName = function(tmplPath) {

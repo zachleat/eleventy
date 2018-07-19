@@ -8,6 +8,7 @@ const TemplateRender = require("./TemplateRender");
 const TemplatePassthroughManager = require("./TemplatePassthroughManager");
 const EleventyError = require("./EleventyError");
 const TemplateGlob = require("./TemplateGlob");
+const Pagination = require("./Plugins/Pagination");
 const EleventyExtensionMap = require("./EleventyExtensionMap");
 const config = require("./Config");
 const debug = require("debug")("Eleventy:TemplateWriter");
@@ -265,7 +266,15 @@ TemplateWriter.prototype._createTemplateMap = async function(paths) {
 TemplateWriter.prototype._writeTemplate = async function(mapEntry) {
   let tmpl = mapEntry.template;
   try {
-    await tmpl.write(mapEntry.outputPath, mapEntry.data);
+    if (Pagination.hasPagination(mapEntry.data)) {
+      await tmpl.write(mapEntry.outputPath, mapEntry.data);
+    } else {
+      await tmpl.writeContent(
+        mapEntry.outputPath,
+        mapEntry.data,
+        mapEntry.templateContent
+      );
+    }
   } catch (e) {
     throw EleventyError.make(
       new Error(`Having trouble writing template: ${mapEntry.outputPath}`),
@@ -282,8 +291,10 @@ TemplateWriter.prototype.write = async function() {
   debug("Found: %o", paths);
 
   await this.passthroughManager.copyAll(paths);
+  let start = new Date();
   await this._createTemplateMap(paths);
-  for (let mapEntry of this.templateMap.getMap()) {
+  let map = this.templateMap.getMap();
+  for (let mapEntry of map) {
     await this._writeTemplate(mapEntry);
   }
 };

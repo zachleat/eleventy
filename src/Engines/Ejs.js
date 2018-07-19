@@ -2,7 +2,6 @@ const ejsLib = require("ejs");
 const TemplateEngine = require("./TemplateEngine");
 const lodashMerge = require("lodash.merge");
 const config = require("../Config");
-const path = require("path");
 
 class Ejs extends TemplateEngine {
   constructor(name, inputDir) {

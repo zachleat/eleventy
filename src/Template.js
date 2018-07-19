@@ -1,3 +1,4 @@
+const chalk = require("chalk");
 const fs = require("fs-extra");
 const parsePath = require("parse-filepath");
 const normalize = require("normalize-path");
@@ -89,7 +90,7 @@ class Template extends TemplateContent {
           permalink,
           permalinkValue
         );
-        debugDev("Permalink rendered with data: %o", data);
+        // debugDev("Permalink rendered with data: %o", data);
       }
 
       let perm = new TemplatePermalink(
@@ -100,12 +101,13 @@ class Template extends TemplateContent {
       return perm;
     }
 
-    return TemplatePermalink.generate(
+    let link = TemplatePermalink.generate(
       this.getTemplateSubfolder(),
       this.parsed.name,
       this.extraOutputSubdirectory,
       this.isHtmlIOException ? this.config.htmlOutputSuffix : ""
     );
+    return link;
   }
 
   // TODO instead of isHTMLIOException, do a global search to check if output path = input path and then add extra suffix
@@ -279,17 +281,31 @@ class Template extends TemplateContent {
     return data;
   }
 
-  async renderLayout(tmpl, tmplData) {
-    let layoutKey = tmplData[tmpl.config.keys.layout];
-    let layout = TemplateLayout.getTemplate(layoutKey, this.getInputDir());
-    debug("%o is using layout %o", this.inputPath, layoutKey);
+  async _renderLayout(tmplData, templateContent) {
+    let layoutKey = tmplData[this.config.keys.layout];
+    if (layoutKey) {
+      debug("%o is using layout %o", this.inputPath, layoutKey);
+      let layoutTemplate = TemplateLayout.getTemplate(
+        layoutKey,
+        this.getInputDir()
+      );
+      let templateContentWrappedInLayout = layoutTemplate.render(
+        tmplData,
+        templateContent
+      );
+      debug("%o rendered using layout %o", this.inputPath, layoutKey);
+      return templateContentWrappedInLayout;
+    } else {
+      return templateContent;
+    }
+  }
 
-    // TODO reuse templateContent from templateMap
+  async renderLayout(tmpl, tmplData) {
     let templateContent = await super.render(
       await this.getPreRender(),
       tmplData
     );
-    return layout.render(tmplData, templateContent);
+    return this._renderLayout(tmplData, templateContent);
   }
 
   async _testRenderWithoutLayouts(data) {
@@ -384,6 +400,7 @@ class Template extends TemplateContent {
   }
 
   async getRenderedTemplates(data) {
+    this.benchmark.before();
     let pages = await this.getTemplates(data);
     for (let page of pages) {
       page.templateContent = await page.template._getContent(
@@ -391,6 +408,7 @@ class Template extends TemplateContent {
         page.data
       );
     }
+    this.benchmark.after();
     return pages;
   }
 
@@ -402,6 +420,7 @@ class Template extends TemplateContent {
   }
 
   async _write(outputPath, finalContent) {
+    this.benchmark.before();
     this.writeCount++;
 
     if (!this.isDryRun) {
@@ -409,15 +428,22 @@ class Template extends TemplateContent {
     }
 
     let writeDesc = this.isDryRun ? "Pretending to write" : "Writing";
+    this.benchmark.after();
     if (this.isVerbose) {
-      console.log(`${writeDesc} ${outputPath} from ${this.inputPath}.`);
+      console.log(
+        `${writeDesc} ${chalk.green(outputPath)} from ${this.inputPath}.`
+      );
     } else {
       debug(`${writeDesc} %o from %o.`, outputPath, this.inputPath);
     }
   }
 
-  async writeContent(outputPath, templateContent) {
-    await this._write(outputPath, templateContent);
+  async writeContent(outputPath, data, templateContent) {
+    let templateContentWrappedInLayout = await this._renderLayout(
+      data,
+      templateContent
+    );
+    await this._write(outputPath, templateContentWrappedInLayout);
   }
 
   async write(outputPath, data) {
@@ -425,6 +451,14 @@ class Template extends TemplateContent {
     for (let tmpl of templates) {
       await this._write(tmpl.outputPath, tmpl.templateContent);
     }
+    let templateCountStr =
+      templates.length > 1
+        ? ` from ${templates.length} templates, paginated`
+        : "";
+    debug(
+      `Finished writing from %o. Total time spent: ${this.benchmark.getTotal()}ms${templateCountStr}`,
+      this.inputPath
+    );
   }
 
   // TODO this but better
@@ -532,6 +566,7 @@ class Template extends TemplateContent {
   }
 
   async getTertiaryMapEntry(page) {
+    this.benchmark.before();
     this.setWrapWithLayouts(false);
     let mapEntry = {
       templateContent: await page.template._getContent(
@@ -540,13 +575,17 @@ class Template extends TemplateContent {
       )
     };
     this.setWrapWithLayouts(true);
+    this.benchmark.after();
 
     return mapEntry;
   }
 
   async getMapped() {
     debugDev("%o getMapped()", this.inputPath);
-    return await this.getInitialMapEntry();
+    this.benchmark.before();
+    let ret = await this.getInitialMapEntry();
+    this.benchmark.after();
+    return ret;
   }
 }
 
