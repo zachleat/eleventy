@@ -259,7 +259,7 @@ TemplateWriter.prototype._createTemplateMap = async function(paths) {
   }
 
   await this.templateMap.cache();
-  debugDev(`TemplateMap cache complete.`);
+  debug("TemplateMap cache complete.");
   return this.templateMap;
 };
 
@@ -291,7 +291,6 @@ TemplateWriter.prototype.write = async function() {
   debug("Found: %o", paths);
 
   await this.passthroughManager.copyAll(paths);
-  let start = new Date();
   await this._createTemplateMap(paths);
   let map = this.templateMap.getMap();
   for (let mapEntry of map) {

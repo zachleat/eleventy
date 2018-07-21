@@ -6,7 +6,6 @@ const TemplateRender = require("./TemplateRender");
 const Benchmark = require("./Benchmark");
 const EleventyError = require("./EleventyError");
 const config = require("./Config");
-const debug = require("debug")("Eleventy:TemplateContent");
 const debugDev = require("debug")("Dev:Eleventy:TemplateContent");
 
 class TemplateContent {
@@ -52,6 +51,7 @@ class TemplateContent {
     return this.frontMatter;
   }
 
+  /* Raw content without front matter */
   async getPreRender() {
     if (!this.frontMatter) {
       await this.read();
@@ -74,7 +74,9 @@ class TemplateContent {
   }
 
   async setupTemplateRender(bypassMarkdown) {
+    // .read has already parsed content by this point so this isn’t expensive
     let engineOverride = await this.getEngineOverride();
+
     if (engineOverride !== undefined) {
       debugDev(
         "%o overriding template engine to use %o",

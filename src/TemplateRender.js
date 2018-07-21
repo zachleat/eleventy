@@ -29,8 +29,9 @@ function TemplateRender(tmplPath, inputDir) {
 
 TemplateRender.prototype.init = function(engineNameOrPath) {
   this.engineName = TemplateRender.cleanupEngineName(engineNameOrPath);
+  debugDev("before TemplateEngine.getEngine");
   this.engine = TemplateEngine.getEngine(this.engineName, this.inputDir);
-  debugDev("init engine");
+  debugDev("after TemplateEngine.getEngine");
 };
 
 TemplateRender.cleanupEngineName = function(tmplPath) {

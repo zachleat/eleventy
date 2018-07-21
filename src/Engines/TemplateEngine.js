@@ -2,6 +2,7 @@ const fastglob = require("fast-glob");
 const fs = require("fs-extra");
 const TemplatePath = require("../TemplatePath");
 const debug = require("debug")("Eleventy:TemplateEngine");
+const debugDev = require("debug")("Dev:Eleventy:TemplateEngine");
 
 class TemplateEngine {
   constructor(name, inputDir) {
@@ -78,6 +79,25 @@ class TemplateEngine {
     return fn(data);
   }
 
+  static _initCache(inputDir) {
+    if (!TemplateEngine._cache) {
+      TemplateEngine._cache = {};
+    }
+    if (!TemplateEngine._cache[inputDir]) {
+      TemplateEngine._cache[inputDir] = {};
+    }
+  }
+
+  static getEngineFromCache(name, inputDir) {
+    TemplateEngine._initCache(inputDir);
+    return TemplateEngine._cache[inputDir][name];
+  }
+
+  static addToEngineCache(name, inputDir, engine) {
+    TemplateEngine._initCache(inputDir);
+    TemplateEngine._cache[inputDir][name] = engine;
+  }
+
   static get templateKeyMapToClassName() {
     return {
       ejs: "Ejs",
@@ -99,14 +119,23 @@ class TemplateEngine {
   }
 
   static getEngine(name, inputDir) {
+    debugDev("before getEngine");
     if (!(name in TemplateEngine.templateKeyMapToClassName)) {
       throw new Error(
         "Template Engine " + name + " does not exist in getEngine"
       );
     }
+    let cachedEngine = TemplateEngine.getEngineFromCache(name, inputDir);
+    if (cachedEngine) {
+      debugDev(`Found cachedEngine for ${name} ${inputDir}`);
+      return cachedEngine;
+    }
 
     const cls = require("./" + TemplateEngine.templateKeyMapToClassName[name]);
+    debugDev("getEngine require");
     let inst = new cls(name, inputDir);
+    TemplateEngine.addToEngineCache(name, inputDir, inst);
+    debugDev(`getEngine: Added to engine cache ${name} ${inputDir}`);
     return inst;
   }
 }

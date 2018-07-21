@@ -166,18 +166,6 @@ class Template extends TemplateContent {
     return data;
   }
 
-  async _testGetAllLayoutFrontMatterData() {
-    let frontMatterData = await this.getFrontMatterData();
-    if (frontMatterData[this.config.keys.layout]) {
-      let layout = TemplateLayout.getTemplate(
-        frontMatterData[this.config.keys.layout],
-        this.getInputDir()
-      );
-      return await layout.getData();
-    }
-    return {};
-  }
-
   async getData(localData) {
     if (!this.dataCache) {
       debugDev("%o getData()", this.inputPath);
@@ -281,7 +269,7 @@ class Template extends TemplateContent {
     return data;
   }
 
-  async _renderLayout(tmplData, templateContent) {
+  async renderLayout(tmplData, templateContent) {
     let layoutKey = tmplData[this.config.keys.layout];
     if (layoutKey) {
       debug("%o is using layout %o", this.inputPath, layoutKey);
@@ -300,12 +288,12 @@ class Template extends TemplateContent {
     }
   }
 
-  async renderLayout(tmpl, tmplData) {
+  async _testRenderLayout(tmpl, tmplData) {
     let templateContent = await super.render(
       await this.getPreRender(),
       tmplData
     );
-    return this._renderLayout(tmplData, templateContent);
+    return this.renderLayout(tmplData, templateContent);
   }
 
   async _testRenderWithoutLayouts(data) {
@@ -315,7 +303,7 @@ class Template extends TemplateContent {
     return ret;
   }
 
-  async renderContent(str, data, bypassMarkdown) {
+  async _testRenderContent(str, data, bypassMarkdown) {
     return super.render(str, data, bypassMarkdown);
   }
 
@@ -329,15 +317,19 @@ class Template extends TemplateContent {
       debugDev("Template.render is bypassing layouts for %o.", this.inputPath);
     }
 
+    let rawTemplateContent = await this.getPreRender();
+
     if (this.wrapWithLayouts && data[this.config.keys.layout]) {
       debugDev(
         "Template.render found layout: %o",
         data[this.config.keys.layout]
       );
-      return this.renderLayout(this, data);
+
+      let templateContent = await super.render(rawTemplateContent, data);
+      return this.renderLayout(data, templateContent);
     } else {
       debugDev("Template.render renderContent for %o", this.inputPath);
-      return super.render(await this.getPreRender(), data);
+      return super.render(rawTemplateContent, data);
     }
   }
 
@@ -439,7 +431,7 @@ class Template extends TemplateContent {
   }
 
   async writeContent(outputPath, data, templateContent) {
-    let templateContentWrappedInLayout = await this._renderLayout(
+    let templateContentWrappedInLayout = await this.renderLayout(
       data,
       templateContent
     );

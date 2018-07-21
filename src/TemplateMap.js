@@ -148,6 +148,7 @@ class TemplateMap {
     debug(`Collection: collections.all size: ${collections.all.length}`);
 
     let tags = this.getAllTags();
+    debug(`Found: ${tags.length} tags.`);
     for (let tag of tags) {
       collections[tag] = this.createTemplateMapCopy(
         this.collection.getFilteredByTag(tag)

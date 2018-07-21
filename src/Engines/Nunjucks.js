@@ -40,6 +40,9 @@ class Nunjucks extends TemplateEngine {
   }
 
   addTag(name, tagFn) {
+    // Tests failing when re-adding multiple tags of the same name
+    // this.njkEnv.removeExtension(name);
+
     let tagObj;
     if (typeof tagFn === "function") {
       tagObj = tagFn(NunjucksLib, this.njkEnv);
@@ -92,7 +95,7 @@ class Nunjucks extends TemplateEngine {
   }
 
   addPairedShortcode(shortcodeName, shortcodeFn) {
-    this.addTag(shortcodeName, function(nunjucksEngine, nunjucksEnv) {
+    this.addTag(shortcodeName, function(nunjucksEngine) {
       return new function() {
         this.tags = [shortcodeName];
 

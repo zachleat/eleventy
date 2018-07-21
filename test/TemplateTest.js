@@ -198,7 +198,7 @@ test("One Layout (using new content var)", async t => {
   t.is(data[config.keys.layout], "defaultLayout");
 
   t.is(
-    cleanHtml(await tmpl.renderLayout(tmpl, data)),
+    cleanHtml(await tmpl._testRenderLayout(tmpl, data)),
     `<div id="layout">
   <p>Hello.</p>
 </div>`
@@ -226,7 +226,7 @@ test("One Layout (using layoutContent)", async t => {
   t.is(data[config.keys.layout], "defaultLayoutLayoutContent");
 
   t.is(
-    cleanHtml(await tmpl.renderLayout(tmpl, data)),
+    cleanHtml(await tmpl._testRenderLayout(tmpl, data)),
     `<div id="layout">
   <p>Hello.</p>
 </div>`
@@ -279,7 +279,7 @@ test("One Layout (_layoutContent deprecated but supported)", async t => {
   t.is(data[config.keys.layout], "defaultLayout_layoutContent");
 
   t.is(
-    cleanHtml(await tmpl.renderLayout(tmpl, data)),
+    cleanHtml(await tmpl._testRenderLayout(tmpl, data)),
     `<div id="layout">
   <p>Hello.</p>
 </div>`
@@ -307,7 +307,7 @@ test("One Layout (liquid test)", async t => {
   t.is(data[config.keys.layout], "layoutLiquid.liquid");
 
   t.is(
-    cleanHtml(await tmpl.renderLayout(tmpl, data)),
+    cleanHtml(await tmpl._testRenderLayout(tmpl, data)),
     `<div id="layout">
   <p>Hello.</p>
 </div>`
@@ -333,7 +333,7 @@ test("Two Layouts", async t => {
   t.is(data.key1, "value1");
 
   t.is(
-    cleanHtml(await tmpl.renderLayout(tmpl, data)),
+    cleanHtml(await tmpl._testRenderLayout(tmpl, data)),
     `<div id="layout-b">
   <div id="layout-a">
     <p>value2-a</p>
@@ -993,7 +993,7 @@ test("renderContent on a markdown file, permalink should not render markdown", a
   );
 
   t.is(
-    await tmpl.renderContent("/news/my-test-file/index.html", {}, true),
+    await tmpl._testRenderContent("/news/my-test-file/index.html", {}, true),
     "/news/my-test-file/index.html"
   );
 
@@ -1008,7 +1008,7 @@ test("renderContent on a markdown file, permalink should not render markdown (wi
   );
 
   t.is(
-    await tmpl.renderContent(
+    await tmpl._testRenderContent(
       "/news/{{ slug }}/index.html",
       { slug: "my-title" },
       true
@@ -1027,7 +1027,7 @@ test("renderContent on a markdown file, permalink should not render markdown (ha
   );
 
   t.is(
-    await tmpl.renderContent("/news/my-test-file/index.html", {}, true),
+    await tmpl._testRenderContent("/news/my-test-file/index.html", {}, true),
     "/news/my-test-file/index.html"
   );
 
