@@ -39,8 +39,9 @@ class TemplateMap {
 
     this.userConfigCollectionsData = await this.getUserConfigCollectionsData();
     Object.assign(this.collectionsData, this.userConfigCollectionsData);
-    // TODO this is repeated, unnecessary?
+
     await this.populateUrlDataInMap();
+    // TODO this is repeated, unnecessary?
     await this.populateCollectionsWithOutputPaths(this.collectionsData);
 
     await this.populateContentDataInMap();
@@ -78,7 +79,7 @@ class TemplateMap {
 
   async populateUrlDataInMap(skipPagination) {
     for (let map of this.map) {
-      if (map._initialPage) {
+      if (map._pages) {
         continue;
       }
       if (skipPagination && "pagination" in map.data) {
@@ -87,11 +88,11 @@ class TemplateMap {
 
       let pages = await map.template.getTemplates(map.data);
       if (pages.length) {
-        map._initialPage = pages[0];
+        map._pages = pages;
 
         Object.assign(
           map,
-          await map.template.getSecondaryMapEntry(map._initialPage)
+          await map.template.getSecondaryMapEntry(map._pages[0])
         );
       }
     }
@@ -99,10 +100,10 @@ class TemplateMap {
 
   async populateContentDataInMap() {
     for (let map of this.map) {
-      if (map._initialPage) {
+      if (map._pages) {
         Object.assign(
           map,
-          await map.template.getTertiaryMapEntry(map._initialPage)
+          await map.template.getTertiaryMapEntry(map._pages[0])
         );
         debugDev(
           "Added this.map[...].templateContent, outputPath, et al for one map entry"

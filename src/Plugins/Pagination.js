@@ -157,7 +157,7 @@ Pagination.prototype.getPageTemplates = async function() {
     }
 
     overrides.push(override);
-    cloned.setDataOverrides(overrides[pageNumber]);
+    cloned.setPaginationData(override);
 
     // TO DO subdirectory to links if the site doesn’t live at /
     links.push("/" + (await cloned.getOutputLink()));
@@ -180,7 +180,7 @@ Pagination.prototype.getPageTemplates = async function() {
       // todo deprecated, consistency with collections and use links instead
       overrides[pageNumber].pagination.pageLinks = links;
 
-      cloned.setDataOverrides(overrides[pageNumber]);
+      cloned.setPaginationData(overrides[pageNumber]);
 
       pages.push(cloned);
     }.bind(this)

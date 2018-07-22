@@ -495,3 +495,58 @@ test("TemplateMap render and templateContent are the same (templateContent doesn
   t.is(map[0].templateContent.trim(), "<p>Inherited</p>");
   t.is((await map[0].template.render(map[0].data)).trim(), "<p>Inherited</p>");
 });
+
+test("Should be able to paginate a tag generated collection (and it has templateContent)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-tag-dogs-templateContent.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  let collections = await tm.getCollectionsData();
+  let pagedMapEntry = collections.all[2];
+  let templates = await pagedMapEntry.template.getRenderedTemplates(
+    pagedMapEntry.data
+  );
+  t.is(templates.length, 1);
+  t.is(templates[0].data.pagination.pageNumber, 0);
+  t.is(
+    templates[0].templateContent.trim(),
+    `<p>Before</p>
+<h1>Test 1</h1>
+<p>After</p>`
+  );
+});
+
+test("Should be able to paginate a tag generated collection when aliased (and it has templateContent)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-tag-dogs-templateContent-alias.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  let collections = await tm.getCollectionsData();
+  let pagedMapEntry = collections.all[2];
+  let templates = await pagedMapEntry.template.getRenderedTemplates(
+    pagedMapEntry.data
+  );
+
+  t.is(templates.length, 1);
+  t.is(templates[0].data.pagination.pageNumber, 0);
+  t.is(
+    templates[0].templateContent.trim(),
+    `<p>Before</p>
+<h1>Test 1</h1>
+<p>After</p>`
+  );
+});
