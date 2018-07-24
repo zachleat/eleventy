@@ -550,3 +550,34 @@ test("Should be able to paginate a tag generated collection when aliased (and it
 <p>After</p>`
   );
 });
+
+test("User config collections should have templateContent", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let tmpl3 = new Template(
+    "./test/stubs/templateMapCollection/cfg-collection-templateContent.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(tmpl3);
+
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      return collection.getFilteredByTag("dog");
+    }
+  });
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.userCollection);
+  t.is(collections.userCollection.length, 1);
+  t.is(collections.dog[0].templateContent.trim(), "<h1>Test 1</h1>");
+  t.is(collections.userCollection[0].templateContent.trim(), "<h1>Test 1</h1>");
+
+  t.is(
+    collections.all[2].templateContent.trim(),
+    `<h1>templateContent Test</h1>
+<h1>Test 1</h1>`
+  );
+});
