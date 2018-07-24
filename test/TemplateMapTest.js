@@ -581,7 +581,11 @@ test("User config collections should have templateContent", async t => {
   t.is(collections.userCollection[0].templateContent.trim(), "<h1>Test 1</h1>");
 
   t.is(
-    collections.all[2].templateContent.trim(),
+    collections.all
+      .filter(
+        item => item.inputPath.indexOf("cfg-collection-templateContent.md") > -1
+      )[0]
+      .templateContent.trim(),
     `<h1>templateContent Test</h1>
 <h1>Test 1</h1>`
   );
