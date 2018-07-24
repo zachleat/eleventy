@@ -145,6 +145,18 @@ test("Liquid Shortcode", async t => {
   );
 });
 
+test("Liquid Shortcode Safe Output", async t => {
+  let tr = new TemplateRender("liquid", "./test/stubs/");
+  tr.engine.addShortcode("postfixWithZach", function(str) {
+    return `<span>${str}</span>`;
+  });
+
+  t.is(
+    await tr.render("{% postfixWithZach name %}", { name: "test" }),
+    "<span>test</span>"
+  );
+});
+
 test("Liquid Paired Shortcode", async t => {
   let tr = new TemplateRender("liquid", "./test/stubs/");
   tr.engine.addPairedShortcode("postfixWithZach", function(content, str) {

@@ -509,7 +509,9 @@ test("Should be able to paginate a tag generated collection (and it has template
   await tm.add(pagedTmpl);
 
   let collections = await tm.getCollectionsData();
-  let pagedMapEntry = collections.all[2];
+  let pagedMapEntry = collections.all.filter(
+    item => item.inputPath.indexOf("paged-tag-dogs-templateContent.md") > -1
+  )[0];
   let templates = await pagedMapEntry.template.getRenderedTemplates(
     pagedMapEntry.data
   );
@@ -536,7 +538,10 @@ test("Should be able to paginate a tag generated collection when aliased (and it
   await tm.add(pagedTmpl);
 
   let collections = await tm.getCollectionsData();
-  let pagedMapEntry = collections.all[2];
+  let pagedMapEntry = collections.all.filter(
+    item =>
+      item.inputPath.indexOf("paged-tag-dogs-templateContent-alias.md") > -1
+  )[0];
   let templates = await pagedMapEntry.template.getRenderedTemplates(
     pagedMapEntry.data
   );

@@ -92,6 +92,18 @@ test("Nunjucks Shortcode", async t => {
   );
 });
 
+test("Nunjucks Shortcode Safe Output", async t => {
+  let tr = new TemplateRender("njk", "./test/stubs/");
+  tr.engine.addShortcode("postfixWithZach", function(str) {
+    return `<span>${str}</span>`;
+  });
+
+  t.is(
+    await tr.render("{% postfixWithZach name %}", { name: "test" }),
+    "<span>test</span>"
+  );
+});
+
 test("Nunjucks Paired Shortcode", async t => {
   let tr = new TemplateRender("njk", "./test/stubs/");
   tr.engine.addPairedShortcode("postfixWithZach", function(content, str) {

@@ -6,8 +6,6 @@ class Sortable {
     this.sortNumeric = false;
     this.items = [];
 
-    this.cache = {};
-
     this.sortFunctionStringMap = {
       "A-Z": "Ascending",
       "Z-A": "Descending",
@@ -22,11 +20,6 @@ class Sortable {
 
   add(item) {
     this.items.push(item);
-
-    // reset the caches!
-    for (let key in this.cache) {
-      this.cache[key] = false;
-    }
   }
 
   sort(sortFunction) {
@@ -40,31 +33,15 @@ class Sortable {
       sortFunction = Sortable["sortFunction" + capitalize(sortFunction)];
     }
 
-    return this._cache(sortFunction.toString(), function() {
-      return this.items.sort(sortFunction);
-    });
-  }
-
-  _cache(key, callback) {
-    if (this.cache[key]) {
-      return this.cache[key];
-    }
-
-    this.cache[key] = callback.call(this);
-
-    return this.cache[key];
+    return this.items.filter(() => true).sort(sortFunction);
   }
 
   sortAscending() {
-    return this._cache("ASC", function() {
-      return this.sort(this.getSortFunctionAscending);
-    });
+    return this.sort(this.getSortFunctionAscending);
   }
 
   sortDescending() {
-    return this._cache("DESC", function() {
-      return this.sort(this.getSortFunctionDescending);
-    });
+    return this.sort(this.getSortFunctionDescending);
   }
 
   isSortAscending() {
