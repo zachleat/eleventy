@@ -266,15 +266,17 @@ TemplateWriter.prototype._createTemplateMap = async function(paths) {
 TemplateWriter.prototype._writeTemplate = async function(mapEntry) {
   let tmpl = mapEntry.template;
   try {
-    if (Pagination.hasPagination(mapEntry.data)) {
-      await tmpl.write(mapEntry.outputPath, mapEntry.data);
-    } else {
-      await tmpl.writeContent(
-        mapEntry.outputPath,
-        mapEntry.data,
-        mapEntry.templateContent
-      );
-    }
+    // if (Pagination.hasPagination(mapEntry.data)) {
+    // TODO use mapEntry._pages here to make faster
+    await tmpl.write(mapEntry.outputPath, mapEntry.data);
+    // } else {
+    // // TODO make this work with the eleventy-base-blog and templateContent on index.md
+    //   await tmpl.writeContent(
+    //     mapEntry.outputPath,
+    //     mapEntry.data,
+    //     mapEntry.templateContent
+    //   );
+    // }
   } catch (e) {
     throw EleventyError.make(
       new Error(`Having trouble writing template: ${mapEntry.outputPath}`),

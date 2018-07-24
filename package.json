@@ -65,13 +65,14 @@
     ]
   },
   "devDependencies": {
+    "@11ty/eleventy-plugin-syntaxhighlight": "^1.0.5",
     "ava": "^0.25.0",
     "husky": "^0.14.3",
     "lint-staged": "^7.2.0",
     "markdown-it-emoji": "^1.4.0",
     "nyc": "^12.0.2",
     "prettier": "1.13.5",
-    "@11ty/eleventy-plugin-syntaxhighlight": "^1.0.5"
+    "toposort": "^2.0.2"
   },
   "dependencies": {
     "browser-sync": "^2.24.4",
@@ -89,10 +90,12 @@
     "lodash.chunk": "^4.2.0",
     "lodash.clone": "^4.5.0",
     "lodash.get": "^4.4.2",
+    "lodash.isequal": "^4.5.0",
     "lodash.isobject": "^3.0.2",
     "lodash.merge": "^4.6.1",
     "lodash.set": "^4.3.2",
     "lodash.uniq": "^4.5.0",
+    "lodash.uniqwith": "^4.5.0",
     "luxon": "^1.3.0",
     "markdown-it": "^8.4.1",
     "minimist": "^1.2.0",

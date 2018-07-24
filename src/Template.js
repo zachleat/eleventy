@@ -395,10 +395,11 @@ class Template extends TemplateContent {
     this.benchmark.before();
     let pages = await this.getTemplates(data);
     for (let page of pages) {
-      page.templateContent = await page.template._getContent(
+      let pageTemplateContent = await page.template._getContent(
         page.outputPath,
         page.data
       );
+      page.templateContent = pageTemplateContent;
     }
     this.benchmark.after();
     return pages;
@@ -437,6 +438,9 @@ class Template extends TemplateContent {
     );
     await this._write(outputPath, templateContentWrappedInLayout);
   }
+
+  // async writePages(outputPath, data, templatePages) {
+  // }
 
   async write(outputPath, data) {
     let templates = await this.getRenderedTemplates(data);
@@ -557,14 +561,16 @@ class Template extends TemplateContent {
     };
   }
 
+  // TODO this overlaps in a huge way with getRenderedTemplates
   async getTertiaryMapEntry(page) {
     this.benchmark.before();
     this.setWrapWithLayouts(false);
+    let templateContent = await page.template._getContent(
+      page.outputPath,
+      page.data
+    );
     let mapEntry = {
-      templateContent: await page.template._getContent(
-        page.outputPath,
-        page.data
-      )
+      templateContent: templateContent
     };
     this.setWrapWithLayouts(true);
     this.benchmark.after();

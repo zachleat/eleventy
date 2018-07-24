@@ -125,11 +125,12 @@ class TemplateEngine {
         "Template Engine " + name + " does not exist in getEngine"
       );
     }
-    let cachedEngine = TemplateEngine.getEngineFromCache(name, inputDir);
-    if (cachedEngine) {
-      debugDev(`Found cachedEngine for ${name} ${inputDir}`);
-      return cachedEngine;
-    }
+    // TODO enable this, add tests
+    // let cachedEngine = TemplateEngine.getEngineFromCache(name, inputDir);
+    // if (cachedEngine) {
+    //   debugDev(`Found cachedEngine for ${name} ${inputDir}`);
+    //   return cachedEngine;
+    // }
 
     const cls = require("./" + TemplateEngine.templateKeyMapToClassName[name]);
     debugDev("getEngine require");

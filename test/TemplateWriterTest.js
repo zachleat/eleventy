@@ -245,7 +245,7 @@ test("Pagination with a Collection", async t => {
   t.is(collectionsData.tag1.length, 3);
   t.is(collectionsData.pagingtag.length, 1);
 
-  let mapEntry = templateMap.getMapEntryForPath(
+  let mapEntry = templateMap._testGetMapEntryForPath(
     "./test/stubs/paged/collection/main.njk"
   );
   t.truthy(mapEntry);
@@ -291,7 +291,7 @@ test("Use a collection inside of a template", async t => {
   let collectionsData = await templateMap.getCollectionsData();
   t.is(collectionsData.dog.length, 1);
 
-  let mapEntry = templateMap.getMapEntryForPath(
+  let mapEntry = templateMap._testGetMapEntryForPath(
     "./test/stubs/collection-template/template.ejs"
   );
   t.truthy(mapEntry);
@@ -334,7 +334,7 @@ test("Use a collection inside of a layout", async t => {
   let collectionsData = await templateMap.getCollectionsData();
   t.is(collectionsData.dog.length, 1);
 
-  let mapEntry = templateMap.getMapEntryForPath(
+  let mapEntry = templateMap._testGetMapEntryForPath(
     "./test/stubs/collection-layout/template.ejs"
   );
   t.truthy(mapEntry);
