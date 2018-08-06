@@ -1,4 +1,5 @@
 import test from "ava";
+import fs from "fs-extra";
 import fastglob from "fast-glob";
 import parsePath from "parse-filepath";
 import TemplateWriter from "../src/TemplateWriter";
@@ -514,4 +515,33 @@ test("Glob Watcher Files with Config Passthroughs", async t => {
     "./test/stubs/_data/**",
     "./test/stubs/img/**"
   ]);
+});
+
+test("Pagination and TemplateContent", async t => {
+  let tw = new TemplateWriter(
+    "./test/stubs/pagination-templatecontent",
+    "./test/stubs/pagination-templatecontent/_site",
+    ["njk", "md"]
+  );
+
+  tw.setVerboseOutput(false);
+  await tw.write();
+
+  let content = fs.readFileSync(
+    "./test/stubs/pagination-templatecontent/_site/index.html",
+    "utf-8"
+  );
+  t.is(
+    content.trim(),
+    `<h1>Post 1</h1>
+<h1>Post 2</h1>`
+  );
+
+  fs.unlinkSync("./test/stubs/pagination-templatecontent/_site/index.html");
+  fs.unlinkSync(
+    "./test/stubs/pagination-templatecontent/_site/post-1/index.html"
+  );
+  fs.unlinkSync(
+    "./test/stubs/pagination-templatecontent/_site/post-2/index.html"
+  );
 });

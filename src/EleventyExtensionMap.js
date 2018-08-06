@@ -9,13 +9,17 @@ class EleventyExtensionMap {
       return key.trim().toLowerCase();
     });
 
-    this.formats = this.unfilteredFormats.filter(function(key) {
-      return this.hasExtension(key);
-    }.bind(this));
+    this.formats = this.unfilteredFormats.filter(
+      function(key) {
+        return this.hasExtension(key);
+      }.bind(this)
+    );
 
-    this.prunedFormats = this.unfilteredFormats.filter(function(key) {
-      return !this.hasExtension(key);
-    }.bind(this));
+    this.prunedFormats = this.unfilteredFormats.filter(
+      function(key) {
+        return !this.hasExtension(key);
+      }.bind(this)
+    );
   }
 
   setConfig(configOverride) {
@@ -26,14 +30,11 @@ class EleventyExtensionMap {
     if (!path) {
       return [];
     }
-    return this.formats.map(function(key) {
-      return (
-        (dir ? dir + "/" : "") +
-        path +
-        "." +
-        this.getExtension(key)
-      );
-    }.bind(this));
+    return this.formats.map(
+      function(key) {
+        return (dir ? dir + "/" : "") + path + "." + this.getExtension(key);
+      }.bind(this)
+    );
   }
 
   getPrunedGlobs(inputDir) {
@@ -49,15 +50,15 @@ class EleventyExtensionMap {
   }
 
   _getGlobs(formats, inputDir) {
-    return formats.map(function(key) {
-      return (
-        TemplatePath.convertToGlob(inputDir) +
-        "/*." +
-        (this.hasExtension(key)
-          ? this.getExtension(key)
-          : key)
-      );
-    }.bind(this));
+    return formats.map(
+      function(key) {
+        return (
+          TemplatePath.convertToGlob(inputDir) +
+          "/*." +
+          (this.hasExtension(key) ? this.getExtension(key) : key)
+        );
+      }.bind(this)
+    );
   }
 
   hasExtension(key) {
@@ -80,7 +81,7 @@ class EleventyExtensionMap {
       pug: "pug",
       njk: "njk",
       liquid: "liquid",
-      js: "11ty.js"
+      "11ty.js": "11ty.js"
     };
   }
 }
