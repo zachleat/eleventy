@@ -416,10 +416,6 @@ class Template extends TemplateContent {
     this.benchmark.before();
     this.writeCount++;
 
-    if (!this.isDryRun) {
-      await fs.outputFile(outputPath, finalContent);
-    }
-
     let writeDesc = this.isDryRun ? "Pretending to write" : "Writing";
     this.benchmark.after();
     if (this.isVerbose) {
@@ -429,6 +425,16 @@ class Template extends TemplateContent {
     } else {
       debug(`${writeDesc} %o from %o.`, outputPath, this.inputPath);
     }
+
+    if (!this.isDryRun) {
+      return fs.outputFile(outputPath, finalContent).then(() => {
+        debug(
+          `${outputPath} ${
+            !this.isDryRun ? "written" : "pretended to be written"
+          }.`
+        );
+      });
+    }
   }
 
   async writeContent(outputPath, data, templateContent) {
@@ -436,7 +442,7 @@ class Template extends TemplateContent {
       data,
       templateContent
     );
-    await this._write(outputPath, templateContentWrappedInLayout);
+    return this._write(outputPath, templateContentWrappedInLayout);
   }
 
   // async writePages(outputPath, data, templatePages) {
@@ -444,17 +450,21 @@ class Template extends TemplateContent {
 
   async write(outputPath, data) {
     let templates = await this.getRenderedTemplates(data);
+    let promises = [];
     for (let tmpl of templates) {
-      await this._write(tmpl.outputPath, tmpl.templateContent);
+      promises.push(this._write(tmpl.outputPath, tmpl.templateContent));
     }
-    let templateCountStr =
-      templates.length > 1
-        ? ` from ${templates.length} templates, paginated`
-        : "";
-    debug(
-      `Finished writing from %o. Total time spent: ${this.benchmark.getTotal()}ms${templateCountStr}`,
-      this.inputPath
-    );
+
+    return Promise.all(promises).then(() => {
+      let templateCountStr =
+        templates.length > 1
+          ? ` from ${templates.length} templates, paginated`
+          : "";
+      debug(
+        `Finished writing from %o. Total time spent: ${this.benchmark.getTotal()}ms${templateCountStr}`,
+        this.inputPath
+      );
+    });
   }
 
   // TODO this but better
