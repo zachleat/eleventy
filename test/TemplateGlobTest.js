@@ -1,5 +1,5 @@
 import test from "ava";
-import globby from "globby";
+import fastglob from "fast-glob";
 import TemplatePath from "../src/TemplatePath";
 import TemplateGlob from "../src/TemplateGlob";
 
@@ -74,8 +74,8 @@ test("Normalize array argument", t => {
   t.deepEqual(TemplateGlob.map("./views/"), "./views");
 });
 
-test("matuzo project issue with globby assumptions", async t => {
-  let dotslashincludes = await globby(
+test("matuzo project issue with fastglob assumptions", async t => {
+  let dotslashincludes = await fastglob.async(
     TemplateGlob.map([
       "./test/stubs/globby/**/*.html",
       "!./test/stubs/globby/_includes/**/*",
@@ -90,7 +90,7 @@ test("matuzo project issue with globby assumptions", async t => {
     0
   );
 
-  let globincludes = await globby(
+  let globincludes = await fastglob.async(
     TemplateGlob.map([
       "test/stubs/globby/**/*.html",
       "!./test/stubs/globby/_includes/**/*",
@@ -105,26 +105,26 @@ test("matuzo project issue with globby assumptions", async t => {
   );
 });
 
-test("globby assumptions", async t => {
-  let glob = await globby("test/stubs/ignoredFolder/**");
+test("fastglob assumptions", async t => {
+  let glob = await fastglob.async("test/stubs/ignoredFolder/**");
   t.is(glob.length, 1);
 
-  let glob2 = await globby("test/stubs/ignoredFolder/**/*");
+  let glob2 = await fastglob.async("test/stubs/ignoredFolder/**/*");
   t.is(glob2.length, 1);
 
-  let glob3 = await globby([
+  let glob3 = await fastglob.async([
     "./test/stubs/ignoredFolder/**/*.md",
     "!./test/stubs/ignoredFolder/**"
   ]);
   t.is(glob3.length, 0);
 
-  let glob4 = await globby([
+  let glob4 = await fastglob.async([
     "./test/stubs/ignoredFolder/*.md",
     "!./test/stubs/ignoredFolder/**"
   ]);
   t.is(glob4.length, 0);
 
-  let glob5 = await globby([
+  let glob5 = await fastglob.async([
     "./test/stubs/ignoredFolder/ignored.md",
     "!./test/stubs/ignoredFolder/**"
   ]);

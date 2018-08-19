@@ -64,6 +64,15 @@ test("Get file paths (filter out real templates), multiple", async t => {
   t.deepEqual(mgr.getFilePaths(["test.njk", "test.png"]), ["test.png"]);
 });
 
+test("Get file paths with a js file (filter out real templates), multiple", async t => {
+  let mgr = new TemplatePassthroughManager();
+  mgr.setConfig({
+    passthroughFileCopy: true
+  });
+
+  t.deepEqual(mgr.getFilePaths(["test.njk", "test.js"]), ["test.js"]);
+});
+
 test("Get file paths when disabled in config", async t => {
   let mgr = new TemplatePassthroughManager();
   mgr.setConfig({

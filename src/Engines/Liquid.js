@@ -22,8 +22,12 @@ class Liquid extends TemplateEngine {
     this.liquidLib = lib || LiquidLib(this.getLiquidOptions());
     this.setEngineLib(this.liquidLib);
 
-    this.addTags(this.config.liquidTags);
     this.addFilters(this.config.liquidFilters);
+
+    // TODO these all go to the same place (addTag), add warnings for overwrites
+    this.addCustomTags(this.config.liquidTags);
+    this.addAllShortcodes(this.config.liquidShortcodes);
+    this.addAllPairedShortcodes(this.config.liquidPairedShortcodes);
   }
 
   setLiquidOptions(options) {
@@ -45,7 +49,7 @@ class Liquid extends TemplateEngine {
     return options;
   }
 
-  addTags(tags) {
+  addCustomTags(tags) {
     for (let name in tags) {
       this.addTag(name, tags[name]);
     }
@@ -57,10 +61,14 @@ class Liquid extends TemplateEngine {
     }
   }
 
-  addTag(name, tag) {
+  addFilter(name, filter) {
+    this.liquidLib.registerFilter(name, filter);
+  }
+
+  addTag(name, tagFn) {
     let tagObj;
-    if (typeof tag === "function") {
-      tagObj = tag(this.liquidLib);
+    if (typeof tagFn === "function") {
+      tagObj = tagFn(this.liquidLib);
     } else {
       throw new Error(
         "Liquid.addTag expects a callback function to be passed in: addTag(name, function(liquidEngine) { return { parse: …, render: … } })"
@@ -69,8 +77,77 @@ class Liquid extends TemplateEngine {
     this.liquidLib.registerTag(name, tagObj);
   }
 
-  addFilter(name, filter) {
-    this.liquidLib.registerFilter(name, filter);
+  addAllShortcodes(shortcodes) {
+    for (let name in shortcodes) {
+      this.addShortcode(name, shortcodes[name]);
+    }
+  }
+
+  addAllPairedShortcodes(shortcodes) {
+    for (let name in shortcodes) {
+      this.addPairedShortcode(name, shortcodes[name]);
+    }
+  }
+
+  addShortcode(shortcodeName, shortcodeFn) {
+    this.addTag(shortcodeName, function(liquidEngine) {
+      return {
+        parse: function(tagToken, remainTokens) {
+          this.name = tagToken.name;
+          this.args = tagToken.args;
+        },
+        render: function(scope, hash) {
+          let argArray = [];
+          if (typeof this.args === "string") {
+            // TODO key=value key2=value
+            // TODO JSON?
+            let args = this.args.split(" ");
+            for (let arg of args) {
+              argArray.push(LiquidLib.evalExp(arg, scope)); // or evalValue
+            }
+          }
+
+          return Promise.resolve(shortcodeFn(...argArray));
+        }
+      };
+    });
+  }
+
+  addPairedShortcode(shortcodeName, shortcodeFn) {
+    this.addTag(shortcodeName, function(liquidEngine) {
+      return {
+        parse: function(tagToken, remainTokens) {
+          this.name = tagToken.name;
+          this.args = tagToken.args;
+          this.templates = [];
+
+          var stream = liquidEngine.parser
+            .parseStream(remainTokens)
+            .on("template", tpl => this.templates.push(tpl))
+            .on("tag:end" + shortcodeName, token => stream.stop())
+            .on("end", x => {
+              throw new Error(`tag ${tagToken.raw} not closed`);
+            });
+
+          stream.start();
+        },
+        render: function(scope, hash) {
+          let argArray = [];
+          let args = this.args.split(" ");
+          for (let arg of args) {
+            argArray.push(LiquidLib.evalExp(arg, scope)); // or evalValue
+          }
+
+          return new Promise((resolve, reject) => {
+            liquidEngine.renderer
+              .renderTemplates(this.templates, scope)
+              .then(function(html) {
+                resolve(shortcodeFn(html, ...argArray));
+              });
+          });
+        }
+      };
+    });
   }
 
   async compile(str, inputPath) {

@@ -1,6 +1,6 @@
-const lodashchunk = require("lodash.chunk");
-const lodashget = require("lodash.get");
-const lodashset = require("lodash.set");
+const lodashChunk = require("lodash.chunk");
+const lodashGet = require("lodash.get");
+const lodashSet = require("lodash.set");
 const config = require("../Config");
 
 function Pagination(data) {
@@ -22,7 +22,6 @@ Pagination.prototype.hasPagination = function() {
 
 Pagination.prototype.setData = function(data) {
   this.data = data || {};
-  this.size = 1;
   this.target = [];
 
   if (!this.hasPagination()) {
@@ -31,7 +30,7 @@ Pagination.prototype.setData = function(data) {
 
   if (!data.pagination) {
     throw new Error(
-      "Misconfigured pagination data in template front matter (did you use tabs and not spaces?)."
+      "Misconfigured pagination data in template front matter (YAML front matter precaution: did you use tabs and not spaces for indentation?)."
     );
   } else if (!("size" in data.pagination)) {
     throw new Error("Missing pagination size in front matter data.");
@@ -52,25 +51,56 @@ Pagination.prototype._getDataKey = function() {
   return this.data.pagination.data;
 };
 
+Pagination.prototype.resolveObjectToValues = function() {
+  if ("resolve" in this.data.pagination) {
+    return this.data.pagination.resolve === "values";
+  }
+  return false;
+};
+
+Pagination.prototype.isFiltered = function(value) {
+  if ("filter" in this.data.pagination) {
+    let filtered = this.data.pagination.filter;
+    if (Array.isArray(filtered)) {
+      return filtered.indexOf(value) > -1;
+    }
+
+    return filtered === value;
+  }
+
+  return false;
+};
+
 Pagination.prototype._resolveItems = function() {
   let notFoundValue = "__NOT_FOUND_ERROR__";
   let key = this._getDataKey();
-  let ret = lodashget(this.data, key, notFoundValue);
-
+  let ret = lodashGet(this.data, key, notFoundValue);
   if (ret === notFoundValue) {
     throw new Error(
       `Could not resolve pagination key in template data: ${key}`
     );
   }
 
-  return ret;
+  if (!Array.isArray(ret)) {
+    if (this.resolveObjectToValues()) {
+      ret = Object.values(ret);
+    } else {
+      ret = Object.keys(ret);
+    }
+  }
+
+  return ret.filter(
+    function(value) {
+      return !this.isFiltered(value);
+    }.bind(this)
+  );
 };
 
 Pagination.prototype.getPagedItems = function() {
   if (!this.data) {
     throw new Error("Missing `setData` call for Pagination object.");
   }
-  return lodashchunk(this.target, this.size);
+  return lodashChunk(this.target, this.size);
 };
 
 // TODO this name is not good
@@ -119,7 +149,7 @@ Pagination.prototype.getPageTemplates = async function() {
     };
 
     if (this.alias) {
-      lodashset(
+      lodashSet(
         override,
         this.alias,
         this.size === 1 ? items[pageNumber][0] : items[pageNumber]
@@ -127,7 +157,7 @@ Pagination.prototype.getPageTemplates = async function() {
     }
 
     overrides.push(override);
-    cloned.setDataOverrides(overrides[pageNumber]);
+    cloned.setPaginationData(override);
 
     // TO DO subdirectory to links if the site doesn’t live at /
     links.push("/" + (await cloned.getOutputLink()));
@@ -150,7 +180,7 @@ Pagination.prototype.getPageTemplates = async function() {
       // todo deprecated, consistency with collections and use links instead
       overrides[pageNumber].pagination.pageLinks = links;
 
-      cloned.setDataOverrides(overrides[pageNumber]);
+      cloned.setPaginationData(overrides[pageNumber]);
 
       pages.push(cloned);
     }.bind(this)

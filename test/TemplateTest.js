@@ -158,14 +158,6 @@ test("Test that getData() works", async t => {
 
   t.is(data.key1, "value1");
   t.is(data.key3, "value3");
-
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.key1, "value1");
-  t.is(mergedFrontMatter.key3, "value3");
 });
 
 test("More advanced getData()", async t => {
@@ -212,13 +204,8 @@ test("One Layout (using new content var)", async t => {
 </div>`
   );
 
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.keymain, "valuemain");
-  t.is(mergedFrontMatter.keylayout, "valuelayout");
+  t.is(data.keymain, "valuemain");
+  t.is(data.keylayout, "valuelayout");
 });
 
 test("One Layout (using layoutContent)", async t => {
@@ -245,13 +232,8 @@ test("One Layout (using layoutContent)", async t => {
 </div>`
   );
 
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.keymain, "valuemain");
-  t.is(mergedFrontMatter.keylayout, "valuelayout");
+  t.is(data.keymain, "valuemain");
+  t.is(data.keylayout, "valuelayout");
 });
 
 test("One Layout (layouts disabled)", async t => {
@@ -273,15 +255,10 @@ test("One Layout (layouts disabled)", async t => {
   let data = await tmpl.getData();
   t.is(data[config.keys.layout], "defaultLayoutLayoutContent");
 
-  t.is(cleanHtml(await tmpl.render(data)), `<p>Hello.</p>`);
+  t.is(cleanHtml(await tmpl.render(data)), "<p>Hello.</p>");
 
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.keymain, "valuemain");
-  t.is(mergedFrontMatter.keylayout, "valuelayout");
+  t.is(data.keymain, "valuemain");
+  t.is(data.keylayout, "valuelayout");
 });
 
 test("One Layout (_layoutContent deprecated but supported)", async t => {
@@ -308,13 +285,8 @@ test("One Layout (_layoutContent deprecated but supported)", async t => {
 </div>`
   );
 
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.keymain, "valuemain");
-  t.is(mergedFrontMatter.keylayout, "valuelayout");
+  t.is(data.keymain, "valuemain");
+  t.is(data.keylayout, "valuelayout");
 });
 
 test("One Layout (liquid test)", async t => {
@@ -341,13 +313,8 @@ test("One Layout (liquid test)", async t => {
 </div>`
   );
 
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.keymain, "valuemain");
-  t.is(mergedFrontMatter.keylayout, "valuelayout");
+  t.is(data.keymain, "valuemain");
+  t.is(data.keylayout, "valuelayout");
 });
 
 test("Two Layouts", async t => {
@@ -374,12 +341,7 @@ test("Two Layouts", async t => {
 </div>`
   );
 
-  let mergedFrontMatter = await tmpl.getAllLayoutFrontMatterData(
-    tmpl,
-    await tmpl.getFrontMatterData()
-  );
-
-  t.is(mergedFrontMatter.daysPosted, 152);
+  t.is(data.daysPosted, 152);
 });
 
 test("Liquid template", async t => {
@@ -401,7 +363,7 @@ test("Liquid template with include", async t => {
     "dist"
   );
 
-  t.is((await tmpl.render()).trim(), `<p>This is an include.</p>`);
+  t.is((await tmpl.render()).trim(), "<p>This is an include.</p>");
 });
 
 test("ES6 Template Literal (No Backticks)", async t => {
@@ -456,6 +418,21 @@ test("Permalink output directory from layout (fileslug)", async t => {
     await tmpl.getOutputPath(),
     "./dist/test/permalink-in-layout-fileslug/index.html"
   );
+});
+
+test("Layout from template-data-file that has a permalink (fileslug) Issue #121", async t => {
+  let dataObj = new TemplateData("./test/stubs/");
+  let tmpl = new Template(
+    "./test/stubs/permalink-data-layout/test.njk",
+    "./test/stubs/",
+    "./dist",
+    dataObj
+  );
+
+  let data = await tmpl.getData();
+  let renderedTmpl = (await tmpl.getRenderedTemplates(data))[0];
+  t.is(renderedTmpl.templateContent, "Wrapper:Test 1:test");
+  t.is(await tmpl.getOutputPath(), "./dist/test/index.html");
 });
 
 test("Local template data file import (without a global data json)", async t => {
@@ -668,7 +645,7 @@ test("renderData", async t => {
     "./dist"
   );
 
-  t.is((await tmpl.render()).trim(), `hi:value2-value1.css`);
+  t.is((await tmpl.render()).trim(), "hi:value2-value1.css");
 });
 
 test("renderData markdown (issue #40)", async t => {
@@ -678,7 +655,7 @@ test("renderData markdown (issue #40)", async t => {
     "./dist"
   );
 
-  t.is((await tmpl.render()).trim(), `<title>value2-value1.css</title>`);
+  t.is((await tmpl.render()).trim(), "<title>value2-value1.css</title>");
 });
 
 test("getMappedDate (empty, assume created)", async t => {

@@ -100,8 +100,14 @@ test("Global Dir Directory with Constructor Path Arg", async t => {
 test("getAllGlobalData() with other data files", async t => {
   let dataObj = new TemplateData("./test/stubs/");
   let data = await dataObj.cacheData();
+  let dataFilePaths = await dataObj.getGlobalDataFiles();
 
-  t.true((await dataObj.getGlobalDataFiles()).length > 0);
+  t.true(dataFilePaths.length > 0);
+  t.true(
+    dataFilePaths.filter(path => {
+      return path.indexOf("./test/stubs/_data/globalData.json") === 0;
+    }).length > 0
+  );
   t.not(typeof data.testData, "undefined");
 
   t.deepEqual(data.testData, {

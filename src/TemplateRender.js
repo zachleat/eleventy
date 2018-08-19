@@ -2,7 +2,7 @@ const parsePath = require("parse-filepath");
 const TemplatePath = require("./TemplatePath");
 const TemplateEngine = require("./Engines/TemplateEngine");
 const config = require("./Config");
-const debug = require("debug")("Eleventy:TemplateRender");
+// const debug = require("debug")("Eleventy:TemplateRender");
 
 // works with full path names or short engine name
 function TemplateRender(tmplPath, inputDir) {

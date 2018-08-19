@@ -23,7 +23,6 @@ module.exports = function(url, pathPrefix) {
   let normFull = TemplatePath.normalizeUrlPath("/", pathPrefix, url);
   let isRootDirTrailingSlash =
     normRootDir.length && normRootDir.charAt(normRootDir.length - 1) === "/";
-  let isUrlTrailingSlash = url.length && url.charAt(url.length - 1) === "/";
 
   // minor difference with straight `normalize`, "" resolves to root dir and not "."
   // minor difference with straight `normalize`, "/" resolves to root dir

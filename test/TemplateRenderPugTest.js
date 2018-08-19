@@ -71,3 +71,20 @@ test("Pug Render: with Library Override", async t => {
   let fn = await tr.getCompiledTemplate("p= name");
   t.is(await fn({ name: "Zach" }), "<p>Zach</p>");
 });
+
+test("Pug Filter", async t => {
+  let tr = new TemplateRender("pug", "./test/stubs/");
+  tr.engine.setPugOptions({
+    filters: {
+      makeUppercase: function(text, options) {
+        return text.toUpperCase();
+      }
+    }
+  });
+
+  let fn = await tr.getCompiledTemplate(`p
+  :makeUppercase()
+    Zach
+`);
+  t.is(await fn({ name: "Test" }), "<p>ZACH</p>");
+});

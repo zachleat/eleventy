@@ -44,6 +44,17 @@ test("Add liquid tag", t => {
   t.not(Object.keys(cfg.liquidTags).indexOf("myTagName"), -1);
 });
 
+test("Add nunjucks tag", t => {
+  eleventyConfig.addNunjucksTag("myNunjucksTag", function() {});
+
+  let templateCfg = new TemplateConfig(
+    require("../config.js"),
+    "./test/stubs/config.js"
+  );
+  let cfg = templateCfg.getConfig();
+  t.not(Object.keys(cfg.nunjucksTags).indexOf("myNunjucksTag"), -1);
+});
+
 test("Add liquid filter", t => {
   eleventyConfig.addLiquidFilter("myFilterName", function(liquidEngine) {
     return {};

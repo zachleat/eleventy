@@ -76,6 +76,12 @@ TemplatePath.localPath = function(...paths) {
   return normalize(path.join(TemplatePath.getWorkingDir(), ...paths));
 };
 
+TemplatePath.addLeadingDotSlashArray = function(paths) {
+  return paths.map(function(path) {
+    return TemplatePath.addLeadingDotSlash(path);
+  });
+};
+
 TemplatePath.addLeadingDotSlash = function(path) {
   if (path === "." || path === "..") {
     return path + "/";
@@ -124,6 +130,20 @@ TemplatePath.convertToGlob = function(path) {
 
   if (TemplatePath.isDirectorySync(path)) {
     return path + (!TemplatePath.hasTrailingSlash(path) ? "/" : "") + "**";
+  }
+
+  return path;
+};
+
+TemplatePath.removeExtension = function(path, extension) {
+  let split = path.split(".");
+
+  if (extension && split.length > 1) {
+    let ext = split.pop();
+    if (extension.charAt(0) === ".") {
+      extension = extension.substr(1);
+    }
+    return split.join(".") + (!extension || ext === extension ? "" : "." + ext);
   }
 
   return path;

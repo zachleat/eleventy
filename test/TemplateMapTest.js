@@ -173,7 +173,7 @@ test("Issue #115, mixing pagination and collections", async t => {
   t.is(map.length, 3);
   t.deepEqual(map[2].template, tmplIndex);
 
-  let collections = await tm.getAllCollectionsData();
+  let collections = await tm._testGetAllCollectionsData();
   t.is(Object.keys(collections.all).length, 3);
   t.is(Object.keys(collections.foos).length, 1);
   t.is(Object.keys(collections.bars).length, 1);
@@ -233,7 +233,7 @@ test("Issue #115 with layout, mixing pagination and collections", async t => {
   t.is(map.length, 3);
   t.deepEqual(map[2].template, tmplIndex);
 
-  let collections = await tm.getAllCollectionsData();
+  let collections = await tm._testGetAllCollectionsData();
   t.is(Object.keys(collections.all).length, 3);
   t.is(Object.keys(collections.foos).length, 1);
   t.is(Object.keys(collections.bars).length, 1);
@@ -296,5 +296,262 @@ test("TemplateMap adds collections data and has page data values", async t => {
   t.is(
     collections.all[0].data.page.outputPath,
     "./test/stubs/_site/templateMapCollection/test1/index.html"
+  );
+});
+
+test("Url should be available in user config collections API calls", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      let all = collection.getAll();
+      return all;
+    }
+  });
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.userCollection);
+  t.truthy(collections.userCollection.length);
+  t.is(collections.userCollection[0].url, "/templateMapCollection/test1/");
+  t.is(
+    collections.userCollection[0].outputPath,
+    "./test/stubs/_site/templateMapCollection/test1/index.html"
+  );
+
+  t.is(
+    collections.userCollection[0].data.page.url,
+    "/templateMapCollection/test1/"
+  );
+  t.is(
+    collections.userCollection[0].data.page.outputPath,
+    "./test/stubs/_site/templateMapCollection/test1/index.html"
+  );
+});
+
+test("Url should be available in user config collections API calls (test in callback)", async t => {
+  let tm = new TemplateMap();
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      let all = collection.getAll();
+      t.is(all[0].url, "/templateMapCollection/test1/");
+      t.is(
+        all[0].outputPath,
+        "./test/stubs/_site/templateMapCollection/test1/index.html"
+      );
+      t.is(all[1].url, "/templateMapCollection/test2/");
+      t.is(
+        all[1].outputPath,
+        "./test/stubs/_site/templateMapCollection/test2/index.html"
+      );
+
+      return all;
+    }
+  });
+
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+  await tm.cache();
+});
+
+test("Should be able to paginate a tag generated collection", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-tag.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.dog);
+  t.truthy(collections.dog.length);
+});
+
+test("Should be able to paginate a user config collection", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-cfg.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      let all = collection.getFilteredByTag("dog");
+      return all;
+    }
+  });
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.userCollection);
+  t.truthy(collections.userCollection.length);
+});
+
+test("Should be able to paginate a user config collection (uses rendered permalink)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-cfg-permalink.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      let all = collection.getFilteredByTag("dog");
+      t.is(all[0].url, "/templateMapCollection/test1/");
+      t.is(
+        all[0].outputPath,
+        "./test/stubs/_site/templateMapCollection/test1/index.html"
+      );
+      return all;
+    }
+  });
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.userCollection);
+  t.truthy(collections.userCollection.length);
+
+  let urls = [];
+  for (let item of collections.all) {
+    urls.push(item.url);
+  }
+  t.is(urls.indexOf("/test-title/hello/") > -1, true);
+});
+
+test("Should be able to paginate a user config collection (paged template is also tagged)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-cfg-tagged.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      let all = collection.getFilteredByTag("dog");
+      return all;
+    }
+  });
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.haha);
+  t.truthy(collections.haha.length);
+  t.is(collections.haha[0].url, "/templateMapCollection/paged-cfg-tagged/");
+});
+
+test("Should be able to paginate a user config collection (paged template is also tagged, uses custom rendered permalink)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-cfg-tagged-permalink.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  tm.setUserConfigCollections({
+    userCollection: function(collection) {
+      let all = collection.getFilteredByTag("dog");
+      return all;
+    }
+  });
+
+  let collections = await tm.getCollectionsData();
+  t.truthy(collections.haha);
+  t.truthy(collections.haha.length);
+  t.is(collections.haha[0].url, "/test-title/goodbye/");
+});
+
+test("TemplateMap render and templateContent are the same (templateContent doesn’t have layout but makes proper use of layout front matter data)", async t => {
+  let tm = new TemplateMap();
+  let tmplLayout = new Template(
+    "./test/stubs/templateMapCollection/testWithLayout.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+
+  await tm.add(tmplLayout);
+
+  let map = tm.getMap();
+  await tm.cache();
+  t.is(map[0].templateContent.trim(), "<p>Inherited</p>");
+  t.is((await map[0].template.render(map[0].data)).trim(), "<p>Inherited</p>");
+});
+
+test("Should be able to paginate a tag generated collection (and it has templateContent)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-tag-dogs-templateContent.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  let collections = await tm.getCollectionsData();
+  let pagedMapEntry = collections.all.filter(
+    item => item.inputPath.indexOf("paged-tag-dogs-templateContent.md") > -1
+  )[0];
+  let templates = await pagedMapEntry.template.getRenderedTemplates(
+    pagedMapEntry.data
+  );
+  t.is(templates.length, 1);
+  t.is(templates[0].data.pagination.pageNumber, 0);
+  t.is(
+    templates[0].templateContent.trim(),
+    `<p>Before</p>
+<h1>Test 1</h1>
+<p>After</p>`
+  );
+});
+
+test("Should be able to paginate a tag generated collection when aliased (and it has templateContent)", async t => {
+  let tm = new TemplateMap();
+  await tm.add(tmpl1);
+  await tm.add(tmpl2);
+
+  let pagedTmpl = new Template(
+    "./test/stubs/templateMapCollection/paged-tag-dogs-templateContent-alias.md",
+    "./test/stubs/",
+    "./test/stubs/_site"
+  );
+  await tm.add(pagedTmpl);
+
+  let collections = await tm.getCollectionsData();
+  let pagedMapEntry = collections.all.filter(
+    item =>
+      item.inputPath.indexOf("paged-tag-dogs-templateContent-alias.md") > -1
+  )[0];
+  let templates = await pagedMapEntry.template.getRenderedTemplates(
+    pagedMapEntry.data
+  );
+
+  t.is(templates.length, 1);
+  t.is(templates[0].data.pagination.pageNumber, 0);
+  t.is(
+    templates[0].templateContent.trim(),
+    `<p>Before</p>
+<h1>Test 1</h1>
+<p>After</p>`
   );
 });

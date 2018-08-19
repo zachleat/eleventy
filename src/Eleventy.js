@@ -9,15 +9,13 @@ const EleventyServe = require("./EleventyServe");
 const templateCache = require("./TemplateCache");
 const EleventyError = require("./EleventyError");
 const simplePlural = require("./Util/Pluralize");
+const eleventyConfig = require("./EleventyConfig");
 const config = require("./Config");
 const debug = require("debug")("Eleventy");
 
 function Eleventy(input, output) {
   this.config = config.getConfig();
-  this.rawInput = input;
-  this.rawOutput = output;
   this.configPath = null;
-  this.data = null;
   this.isVerbose = true;
   this.isDebug = false;
   this.isDryRun = false;
@@ -26,8 +24,14 @@ function Eleventy(input, output) {
   this.formatsOverride = null;
   this.eleventyServe = new EleventyServe();
 
-  this.initDirs(input, output);
+  this.setRawDirs(input, output);
+  this.initDirs();
 }
+
+Eleventy.prototype.setRawDirs = function(input, output) {
+  this.rawInput = input;
+  this.rawOutput = output;
+};
 
 Eleventy.prototype.initDirs = function() {
   this.input = this.rawInput || this.config.dir.input;
@@ -52,6 +56,10 @@ Eleventy.prototype.setDryRun = function(isDryRun) {
   this.isDryRun = !!isDryRun;
 };
 
+Eleventy.prototype.setPassthroughAll = function(isPassthroughAll) {
+  this.isPassthroughAll = !!isPassthroughAll;
+};
+
 Eleventy.prototype.setPathPrefix = function(pathPrefix) {
   if (pathPrefix || pathPrefix === "") {
     config.setPathPrefix(pathPrefix);
@@ -70,15 +78,18 @@ Eleventy.prototype.setConfigPath = function(configPath) {
   }
 };
 
-Eleventy.prototype.restart = function() {
+Eleventy.prototype.restart = async function() {
   debug("Restarting");
   this.start = new Date();
-  this.data.clearData();
-  this.writer.restart();
   templateCache.clear();
+
+  this.initDirs();
+  await this.init();
 };
 
 Eleventy.prototype.finish = function() {
+  eleventyConfig.logSlowConfigOptions(new Date() - this.start, this.isVerbose);
+
   console.log(this.logFinished());
   debug("Finished writing templates.");
 };
@@ -118,7 +129,7 @@ Eleventy.prototype.logFinished = function() {
   ret.push(`in ${time} ${simplePlural(time, "second", "seconds")}`);
 
   if (writeCount >= 10) {
-    ret.push(`(${(time * 1000 / writeCount).toFixed(1)}ms each)`);
+    ret.push(`(${((time * 1000) / writeCount).toFixed(1)}ms each)`);
   }
 
   return ret.join(" ");
@@ -133,7 +144,8 @@ Eleventy.prototype.init = async function() {
     this.input,
     this.outputDir,
     formats,
-    this.data
+    this.data,
+    this.isPassthroughAll
   );
 
   // TODO maybe isVerbose -> console.log?
@@ -222,9 +234,12 @@ Eleventy.prototype._watch = async function(path) {
   // reset and reload global configuration :O
   if (path === config.getLocalProjectConfigFile()) {
     this.resetConfig();
+  } else {
+    // a lighter config reset (mostly benchmarks)
+    config.resetOnWatch();
   }
 
-  this.restart();
+  await this.restart();
   await this.write();
 
   let isInclude =
@@ -260,21 +275,15 @@ Eleventy.prototype.watch = async function() {
     ignored: this.writer.getGlobWatcherIgnores()
   });
 
-  watcher.on(
-    "change",
-    async function(path, stat) {
-      console.log("File changed:", path);
-      this._watch(path);
-    }.bind(this)
-  );
+  watcher.on("change", async path => {
+    console.log("File changed:", path);
+    this._watch(path);
+  });
 
-  watcher.on(
-    "add",
-    async function(path, stat) {
-      console.log("File added:", path);
-      this._watch(path);
-    }.bind(this)
-  );
+  watcher.on("add", async path => {
+    console.log("File added:", path);
+    this._watch(path);
+  });
 };
 
 Eleventy.prototype.serve = function(port) {

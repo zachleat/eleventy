@@ -15,7 +15,9 @@ test("Normalizer", async t => {
   t.is(TemplatePath.normalize("/testing"), "/testing");
   t.is(TemplatePath.normalize("/testing/"), "/testing");
 
-  t.is(TemplatePath.normalize("./"), "./");
+  // v0.4.0 changed from `./` to `.`
+  // normalize removes trailing slashes so it should probably be `.`
+  t.is(TemplatePath.normalize("./"), ".");
   t.is(TemplatePath.normalize("./testing"), "testing");
 
   t.is(TemplatePath.normalize("../"), "..");
@@ -60,6 +62,21 @@ test("addLeadingDotSlash", t => {
   t.is(TemplatePath.addLeadingDotSlash("/dist"), "/dist");
   t.is(TemplatePath.addLeadingDotSlash("dist"), "./dist");
   t.is(TemplatePath.addLeadingDotSlash(".nyc_output"), "./.nyc_output");
+});
+
+test("addLeadingDotSlashArray", t => {
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray(["."]), ["./"]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray([".."]), ["../"]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray(["./test/stubs"]), [
+    "./test/stubs"
+  ]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray(["./dist"]), ["./dist"]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray(["../dist"]), ["../dist"]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray(["/dist"]), ["/dist"]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray(["dist"]), ["./dist"]);
+  t.deepEqual(TemplatePath.addLeadingDotSlashArray([".nyc_output"]), [
+    "./.nyc_output"
+  ]);
 });
 
 test("contains", t => {
@@ -135,4 +152,36 @@ test("Convert to glob", t => {
   t.is(TemplatePath.convertToGlob("test/stubs"), "./test/stubs/**");
   t.is(TemplatePath.convertToGlob("test/stubs/"), "./test/stubs/**");
   t.is(TemplatePath.convertToGlob("./test/stubs/"), "./test/stubs/**");
+});
+
+test("Remove extension", t => {
+  t.is(TemplatePath.removeExtension(""), "");
+  t.is(TemplatePath.removeExtension("", "hbs"), "");
+
+  t.is(TemplatePath.removeExtension("test/stubs", "hbs"), "test/stubs");
+  t.is(TemplatePath.removeExtension("test/stubs.njk"), "test/stubs.njk");
+  t.is(TemplatePath.removeExtension("test/stubs.njk", "hbs"), "test/stubs.njk");
+  t.is(TemplatePath.removeExtension("test/stubs.hbs", "hbs"), "test/stubs");
+
+  t.is(TemplatePath.removeExtension("./test/stubs.njk"), "./test/stubs.njk");
+  t.is(
+    TemplatePath.removeExtension("./test/stubs.njk", "hbs"),
+    "./test/stubs.njk"
+  );
+  t.is(TemplatePath.removeExtension("./test/stubs.hbs", "hbs"), "./test/stubs");
+
+  t.is(TemplatePath.removeExtension("test/stubs", ".hbs"), "test/stubs");
+  t.is(
+    TemplatePath.removeExtension("test/stubs.njk", ".hbs"),
+    "test/stubs.njk"
+  );
+  t.is(TemplatePath.removeExtension("test/stubs.hbs", ".hbs"), "test/stubs");
+  t.is(
+    TemplatePath.removeExtension("./test/stubs.njk", ".hbs"),
+    "./test/stubs.njk"
+  );
+  t.is(
+    TemplatePath.removeExtension("./test/stubs.hbs", ".hbs"),
+    "./test/stubs"
+  );
 });

@@ -122,6 +122,7 @@ class EleventyServe {
       ignore: ["node_modules"],
       watch: false,
       open: false,
+      notify: false,
       index: "index.html"
     });
 

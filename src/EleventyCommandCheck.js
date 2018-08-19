@@ -11,7 +11,15 @@ class EleventyCommandCheck {
       "port"
     ];
 
-    this.booleanArgs = ["quiet", "version", "watch", "dryrun", "help", "serve"];
+    this.booleanArgs = [
+      "quiet",
+      "version",
+      "watch",
+      "dryrun",
+      "help",
+      "serve",
+      "passthroughall"
+    ];
 
     this.args = argv;
     this.argsMap = this.getArgumentLookupMap();

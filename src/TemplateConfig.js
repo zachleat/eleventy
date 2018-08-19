@@ -30,6 +30,10 @@ class TemplateConfig {
     this.config = this.mergeConfig(this.localProjectConfigPath);
   }
 
+  resetOnWatch() {
+    eleventyConfig.resetOnWatch();
+  }
+
   getConfig() {
     return this.config;
   }

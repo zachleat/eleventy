@@ -14,19 +14,15 @@ class TemplateCollection extends Sortable {
   }
 
   getAll() {
-    return this.items;
+    return this.items.filter(() => true);
   }
 
   getAllSorted() {
-    return this._cache("allSorted", function() {
-      return this.sort(Sortable.sortFunctionDateInputPath);
-    });
+    return this.sort(Sortable.sortFunctionDateInputPath);
   }
 
   getSortedByDate() {
-    return this._cache("sortedByDate", function() {
-      return this.sort(Sortable.sortFunctionDate);
-    });
+    return this.sort(Sortable.sortFunctionDate);
   }
 
   getGlobs(globs) {
@@ -42,14 +38,12 @@ class TemplateCollection extends Sortable {
   getFilteredByGlob(globs) {
     globs = this.getGlobs(globs);
 
-    return this._cache("getFilteredByGlob:" + globs.join(","), function() {
-      return this.getAllSorted().filter(item => {
-        if (multimatch([item.inputPath], globs).length) {
-          return true;
-        }
+    return this.getAllSorted().filter(item => {
+      if (multimatch([item.inputPath], globs).length) {
+        return true;
+      }
 
-        return false;
-      });
+      return false;
     });
   }
 

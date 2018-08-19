@@ -1,0 +1,17 @@
+---
+pagination:
+  data: testdata
+  size: 4
+  resolve: values
+testdata:
+  item1: itemvalue1
+  item2: itemvalue2
+  item3: itemvalue3
+  item4: itemvalue4
+  item5: itemvalue5
+  item6: itemvalue6
+  item7: itemvalue7
+  item8: itemvalue8
+  item9: itemvalue9
+---
+<ol>{% for item in pagination.items %}<li>{{ item }}</li>{% endfor %}</ol>

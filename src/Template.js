@@ -1,38 +1,26 @@
 const fs = require("fs-extra");
 const parsePath = require("parse-filepath");
-const matter = require("gray-matter");
 const normalize = require("normalize-path");
 const _isObject = require("lodash.isobject");
 const { DateTime } = require("luxon");
-const TemplateRender = require("./TemplateRender");
+const TemplateContent = require("./TemplateContent");
 const TemplatePath = require("./TemplatePath");
 const TemplatePermalink = require("./TemplatePermalink");
 const TemplateLayout = require("./TemplateLayout");
 const TemplateFileSlug = require("./TemplateFileSlug");
-const templateCache = require("./TemplateCache");
 const Pagination = require("./Plugins/Pagination");
-const EleventyError = require("./EleventyError");
-const config = require("./Config");
 const debug = require("debug")("Eleventy:Template");
 const debugDev = require("debug")("Dev:Eleventy:Template");
 
-class Template {
+class Template extends TemplateContent {
   constructor(path, inputDir, outputDir, templateData) {
     debugDev("new Template(%o)", path);
+    super(path, inputDir);
 
-    this.config = config.getConfig();
-    this.inputPath = path;
     this.parsed = parsePath(path);
 
     // for pagination
     this.extraOutputSubdirectory = "";
-
-    if (inputDir) {
-      this.inputDir = normalize(inputDir);
-      this.layoutsDir = this.inputDir + "/" + this.config.dir.includes;
-    } else {
-      this.inputDir = false;
-    }
 
     if (outputDir) {
       this.outputDir = normalize(outputDir);
@@ -46,9 +34,7 @@ class Template {
     if (this.templateData) {
       this.templateData.setInputDir(this.inputDir);
     }
-    this.dataOverrides = {};
-
-    this.templateRender = new TemplateRender(this.inputPath, this.inputDir);
+    this.paginationData = {};
 
     // HTML output can’t overwrite the HTML input file.
     this.isHtmlIOException =
@@ -59,7 +45,6 @@ class Template {
     this.isVerbose = true;
     this.isDryRun = false;
     this.writeCount = 0;
-    this.initialLayout = undefined;
     this.wrapWithLayouts = true;
     this.fileSlug = new TemplateFileSlug(this.inputPath, this.inputDir);
   }
@@ -80,10 +65,6 @@ class Template {
     this.extraOutputSubdirectory = dir + "/";
   }
 
-  getInputPath() {
-    return this.inputPath;
-  }
-
   getTemplateSubfolder() {
     return TemplatePath.stripPathFromDir(this.parsed.dir, this.inputDir);
   }
@@ -101,7 +82,7 @@ class Template {
         debugDev("Not using dynamicPermalinks, using %o", permalink);
         permalinkValue = permalink;
       } else {
-        permalinkValue = await this.renderContent(permalink, data, true);
+        permalinkValue = await super.render(permalink, data, true);
         debug(
           "Rendering permalink for %o: %s becomes %o",
           this.inputPath,
@@ -141,6 +122,7 @@ class Template {
   // TODO check for conflicts, see if file already exists?
   async getOutputPath(data) {
     let uri = await this.getOutputLink(data);
+    // TODO this only works with immediate front matter and not data files
     if ((await this.getFrontMatterData())[this.config.keys.permalinkRoot]) {
       return normalize(uri);
     } else {
@@ -148,85 +130,12 @@ class Template {
     }
   }
 
-  setDataOverrides(overrides) {
-    this.dataOverrides = overrides;
+  setPaginationData(paginationData) {
+    this.paginationData = paginationData;
   }
 
   isIgnored() {
     return this.outputDir === false;
-  }
-
-  async read() {
-    this.inputContent = await this.getInputContent();
-    this.frontMatter = matter(this.inputContent);
-  }
-
-  async getInputContent() {
-    return fs.readFile(this.inputPath, "utf-8");
-  }
-
-  async getPreRender() {
-    if (!this.frontMatter) {
-      await this.read();
-    }
-
-    return this.frontMatter.content;
-  }
-
-  async getFrontMatter() {
-    if (!this.frontMatter) {
-      await this.read();
-    }
-
-    return this.frontMatter;
-  }
-
-  async getFrontMatterData() {
-    if (!this.frontMatter) {
-      await this.read();
-    }
-
-    return this.frontMatter.data || {};
-  }
-
-  getLayoutTemplateFilePath(layoutPath) {
-    return new TemplateLayout(layoutPath, this.layoutsDir).getFullPath();
-  }
-
-  getLayoutTemplate(path) {
-    if (templateCache.has(path)) {
-      debugDev("Found %o in TemplateCache", path);
-      return templateCache.get(path);
-    }
-
-    let tmpl = new Template(path, this.inputDir, this.outputDir);
-    templateCache.add(path, tmpl);
-
-    return tmpl;
-  }
-
-  async getAllLayoutFrontMatterData(tmpl, data, merged) {
-    debugDev("%o getAllLayoutFrontMatterData", this.inputPath);
-
-    if (!merged) {
-      merged = data;
-    }
-
-    if (data[this.config.keys.layout]) {
-      let layoutFilePath = tmpl.getLayoutTemplateFilePath(
-        data[this.config.keys.layout]
-      );
-      let layout = tmpl.getLayoutTemplate(layoutFilePath);
-      let layoutData = await layout.getFrontMatterData();
-
-      return this.getAllLayoutFrontMatterData(
-        tmpl,
-        layoutData,
-        Object.assign({}, layoutData, merged)
-      );
-    }
-
-    return merged;
   }
 
   async mapDataAsRenderedTemplates(data, templateData) {
@@ -248,45 +157,59 @@ class Template {
     } else if (typeof data === "string") {
       debug("rendering data.renderData for %o", this.inputPath);
       // bypassMarkdown
-      let str = await this.renderContent(data, templateData, true);
+      let str = await super.render(data, templateData, true);
       return str;
     }
 
     return data;
   }
 
-  setDataCache(data) {
-    this.dataCache = data;
-  }
-
-  getDataCache() {
-    return this.dataCache;
+  async _testGetAllLayoutFrontMatterData() {
+    let frontMatterData = await this.getFrontMatterData();
+    if (frontMatterData[this.config.keys.layout]) {
+      let layout = TemplateLayout.getTemplate(
+        frontMatterData[this.config.keys.layout],
+        this.getInputDir()
+      );
+      return await layout.getData();
+    }
+    return {};
   }
 
   async getData(localData) {
     if (!this.dataCache) {
       debugDev("%o getData()", this.inputPath);
-      let data = {};
+      let localData = {};
 
       if (this.templateData) {
-        data = await this.templateData.getLocalData(this.inputPath);
+        localData = await this.templateData.getLocalData(this.inputPath);
+        debugDev("%o getData() getLocalData", this.inputPath);
       }
 
-      let frontMatterData = await this.getFrontMatterData();
+      Object.assign(localData, await this.getFrontMatterData());
 
-      let mergedLayoutData = await this.getAllLayoutFrontMatterData(
-        this,
-        frontMatterData
-      );
+      let mergedLayoutData = {};
+      if (localData[this.config.keys.layout]) {
+        let layout = TemplateLayout.getTemplate(
+          localData[this.config.keys.layout],
+          this.getInputDir()
+        );
+        mergedLayoutData = await layout.getData();
+        debugDev(
+          "%o getData() get merged layout chain front matter",
+          this.inputPath
+        );
+      }
 
-      let mergedData = Object.assign({}, data, mergedLayoutData);
+      let mergedData = Object.assign({}, mergedLayoutData, localData);
       mergedData = await this.addPageDate(mergedData);
       mergedData = this.addPageData(mergedData);
+      debugDev("%o getData() mergedData", this.inputPath);
 
       this.dataCache = mergedData;
     }
 
-    return Object.assign({}, this.dataCache, localData, this.dataOverrides);
+    return Object.assign({}, this.dataCache, localData, this.paginationData);
   }
 
   async addPageDate(data) {
@@ -356,101 +279,17 @@ class Template {
     return data;
   }
 
-  async renderLayout(tmpl, tmplData, forcedLayoutPath) {
-    let layoutPath = forcedLayoutPath || tmplData[tmpl.config.keys.layout];
-    debugDev("renderLayout(%o): %o", tmpl.inputPath, layoutPath);
+  async renderLayout(tmpl, tmplData) {
+    let layoutKey = tmplData[tmpl.config.keys.layout];
+    let layout = TemplateLayout.getTemplate(layoutKey, this.getInputDir());
+    debug("%o is using layout %o", this.inputPath, layoutKey);
 
-    if (!this.initialLayout) {
-      this.initialLayout = tmplData[tmpl.config.keys.layout];
-      debugDev(
-        "No layout name saved, saving: %o for %o",
-        this.initialLayout,
-        this.inputPath
-      );
-    }
-
-    // TODO make layout key to be available to templates (without it causing issues with merge below)
-    delete tmplData[tmpl.config.keys.layout];
-    debugDev(
-      "Layout deleted from data (%o): %o",
-      tmpl.config.keys.layout,
-      tmplData[tmpl.config.keys.layout]
-    );
-
-    let layoutFilePath = tmpl.getLayoutTemplateFilePath(layoutPath);
-    let layout = tmpl.getLayoutTemplate(layoutFilePath);
-    debug(
-      "%o is using layout %o: %o",
-      this.inputPath,
-      layoutPath,
-      layoutFilePath
-    );
-
-    let layoutData = await layout.getData(tmplData);
-    // debug("layoutData: %O", layoutData)
-    // debug("tmplData (passed to layoutContent = renderContent(): %O", tmplData);
-    // debug("renderLayout -> renderContent(%o)", await tmpl.getPreRender());
-    let layoutContent = await tmpl.renderContent(
-      await tmpl.getPreRender(),
+    // TODO reuse templateContent from templateMap
+    let templateContent = await super.render(
+      await this.getPreRender(),
       tmplData
     );
-    // debug("renderLayout -> layoutContent %o", layoutContent);
-
-    layoutData.content = layoutContent;
-    layoutData.layoutContent = layoutContent;
-    // Deprecated
-    layoutData._layoutContent = layoutContent;
-
-    // don’t propagate engine overrides to layout render
-    delete layoutData[tmpl.config.keys.engineOverride];
-
-    if (layoutData[tmpl.config.keys.layout]) {
-      debugDev(
-        "renderLayout found another layout %o (%o)",
-        layoutData[tmpl.config.keys.layout],
-        this.inputPath
-      );
-      return tmpl.renderLayout(layout, layoutData);
-    }
-
-    return layout.renderContent(await layout.getPreRender(), layoutData);
-  }
-
-  async renderContent(str, data, bypassMarkdown) {
-    // TODO test for layouts and overrides
-    if (this.config.keys.engineOverride in data) {
-      debugDev(
-        "%o overriding template engine to use %o",
-        this.inputPath,
-        data[this.config.keys.engineOverride]
-      );
-
-      this.templateRender.setEngineOverride(
-        data[this.config.keys.engineOverride],
-        bypassMarkdown
-      );
-    } else {
-      this.templateRender.setUseMarkdown(!bypassMarkdown);
-    }
-
-    debugDev(
-      "%o renderContent() using engine: %o",
-      this.inputPath,
-      this.templateRender.engineName
-    );
-
-    try {
-      let fn = await this.templateRender.getCompiledTemplate(str);
-      let rendered = await fn(data);
-      return rendered;
-    } catch (e) {
-      throw EleventyError.make(
-        new Error(
-          `Having trouble rendering template ${this.inputPath}: ${str}`
-        ),
-        e
-      );
-    }
+    return layout.render(tmplData, templateContent);
   }
 
   async _testRenderWithoutLayouts(data) {
@@ -460,35 +299,29 @@ class Template {
     return ret;
   }
 
+  async renderContent(str, data, bypassMarkdown) {
+    return super.render(str, data, bypassMarkdown);
+  }
+
   async render(data) {
     debugDev("%o render()", this.inputPath);
     if (!data) {
       data = await this.getRenderedData();
     }
 
-    if (
-      !this.wrapWithLayouts &&
-      (data[this.config.keys.layout] || this.initialLayout)
-    ) {
+    if (!this.wrapWithLayouts && data[this.config.keys.layout]) {
       debugDev("Template.render is bypassing layouts for %o.", this.inputPath);
     }
 
-    if (
-      this.wrapWithLayouts &&
-      (data[this.config.keys.layout] || this.initialLayout)
-    ) {
-      if (data[this.config.keys.layout]) {
-        debugDev(
-          "Template.render found layout: %o",
-          data[this.config.keys.layout]
-        );
-      } else {
-        debugDev("Template.render found initialLayout: %o", this.initialLayout);
-      }
-      return this.renderLayout(this, data, this.initialLayout);
+    if (this.wrapWithLayouts && data[this.config.keys.layout]) {
+      debugDev(
+        "Template.render found layout: %o",
+        data[this.config.keys.layout]
+      );
+      return this.renderLayout(this, data);
     } else {
       debugDev("Template.render renderContent for %o", this.inputPath);
-      return this.renderContent(await this.getPreRender(), data);
+      return super.render(await this.getPreRender(), data);
     }
   }
 
@@ -497,8 +330,8 @@ class Template {
   }
 
   async runTransforms(str, outputPath) {
-    this.transforms.forEach(function(filter) {
-      str = filter.call(this, str, outputPath);
+    this.transforms.forEach(function(transform) {
+      str = transform.call(this, str, outputPath);
     });
 
     return str;
@@ -563,16 +396,13 @@ class Template {
 
   async _getContent(outputPath, data) {
     let str = await this.render(data);
-    let filtered = await this.runTransforms(str, outputPath);
-    return filtered;
+    let transformed = await this.runTransforms(str, outputPath);
+
+    return transformed;
   }
 
   async _write(outputPath, finalContent) {
     this.writeCount++;
-
-    if (!this.isDryRun) {
-      await fs.outputFile(outputPath, finalContent);
-    }
 
     let writeDesc = this.isDryRun ? "Pretending to write" : "Writing";
     if (this.isVerbose) {
@@ -580,13 +410,30 @@ class Template {
     } else {
       debug(`${writeDesc} %o from %o.`, outputPath, this.inputPath);
     }
+
+    if (!this.isDryRun) {
+      return fs.outputFile(outputPath, finalContent).then(() => {
+        debug(
+          `${outputPath} ${
+            !this.isDryRun ? "written" : "pretended to be written"
+          }.`
+        );
+      });
+    }
+  }
+
+  async writeContent(outputPath, templateContent) {
+    return this._write(outputPath, templateContent);
   }
 
   async write(outputPath, data) {
     let templates = await this.getRenderedTemplates(data);
+    let promises = [];
     for (let tmpl of templates) {
-      await this._write(tmpl.outputPath, tmpl.templateContent);
+      promises.push(this._write(tmpl.outputPath, tmpl.templateContent));
     }
+
+    return Promise.all(promises);
   }
 
   // TODO this but better
@@ -597,10 +444,6 @@ class Template {
       this.outputDir,
       this.templateData
     );
-
-    // let newData = Object.assign({}, this.getDataCache());
-    // delete newData.page.url;
-    // tmpl.setDataCache(newData);
 
     tmpl.setIsVerbose(this.isVerbose);
     tmpl.setDryRun(this.isDryRun);
@@ -667,9 +510,10 @@ class Template {
       let stat = await fs.stat(this.inputPath);
       let createdDate = new Date(stat.birthtimeMs);
       debug(
-        "getMappedDate: using file created time for %o of %o",
+        "getMappedDate: using file created time for %o of %o (from %o)",
         this.inputPath,
-        createdDate
+        createdDate,
+        stat.birthtimeMs
       );
 
       // CREATED

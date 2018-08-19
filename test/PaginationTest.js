@@ -357,3 +357,109 @@ test("Template with Pagination, getRenderedTemplates has page variables set", as
   t.is(templates[1].data.page.url, "/paged/page-1/");
   t.is(templates[1].data.page.outputPath, "./dist/paged/page-1/index.html");
 });
+
+test("Page over an object (use keys)", async t => {
+  let tmpl = new Template(
+    "./test/stubs/paged/pagedobject.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let paging = new Pagination(data);
+  paging.setTemplate(tmpl);
+  let pages = await paging.getPageTemplates();
+  t.is(pages.length, 3);
+
+  t.is(await pages[0].getOutputPath(), "./dist/paged/pagedobject/index.html");
+  t.is(
+    (await pages[0].render()).trim(),
+    "<ol><li>item1</li><li>item2</li><li>item3</li><li>item4</li></ol>"
+  );
+
+  t.is(await pages[1].getOutputPath(), "./dist/paged/pagedobject/1/index.html");
+  t.is(
+    (await pages[1].render()).trim(),
+    "<ol><li>item5</li><li>item6</li><li>item7</li><li>item8</li></ol>"
+  );
+});
+
+test("Page over an object (use values)", async t => {
+  let tmpl = new Template(
+    "./test/stubs/paged/pagedobjectvalues.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let paging = new Pagination(data);
+  paging.setTemplate(tmpl);
+  let pages = await paging.getPageTemplates();
+  t.is(pages.length, 3);
+
+  t.is(
+    await pages[0].getOutputPath(),
+    "./dist/paged/pagedobjectvalues/index.html"
+  );
+  t.is(
+    (await pages[0].render()).trim(),
+    "<ol><li>itemvalue1</li><li>itemvalue2</li><li>itemvalue3</li><li>itemvalue4</li></ol>"
+  );
+
+  t.is(
+    await pages[1].getOutputPath(),
+    "./dist/paged/pagedobjectvalues/1/index.html"
+  );
+  t.is(
+    (await pages[1].render()).trim(),
+    "<ol><li>itemvalue5</li><li>itemvalue6</li><li>itemvalue7</li><li>itemvalue8</li></ol>"
+  );
+});
+
+test("Page over an object (filtered, array)", async t => {
+  let tmpl = new Template(
+    "./test/stubs/paged/pagedobjectfilterarray.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let paging = new Pagination(data);
+  paging.setTemplate(tmpl);
+  let pages = await paging.getPageTemplates();
+  t.is(pages.length, 2);
+
+  t.is(
+    (await pages[0].render()).trim(),
+    "<ol><li>item1</li><li>item2</li><li>item3</li><li>item5</li></ol>"
+  );
+
+  t.is(
+    (await pages[1].render()).trim(),
+    "<ol><li>item6</li><li>item7</li><li>item8</li><li>item9</li></ol>"
+  );
+});
+
+test("Page over an object (filtered, string)", async t => {
+  let tmpl = new Template(
+    "./test/stubs/paged/pagedobjectfilterstring.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let paging = new Pagination(data);
+  paging.setTemplate(tmpl);
+  let pages = await paging.getPageTemplates();
+  t.is(pages.length, 2);
+
+  t.is(
+    (await pages[0].render()).trim(),
+    "<ol><li>item1</li><li>item2</li><li>item3</li><li>item5</li></ol>"
+  );
+
+  t.is(
+    (await pages[1].render()).trim(),
+    "<ol><li>item6</li><li>item7</li><li>item8</li><li>item9</li></ol>"
+  );
+});

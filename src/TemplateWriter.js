@@ -1,4 +1,4 @@
-const globby = require("globby");
+const fastglob = require("fast-glob");
 const fs = require("fs-extra");
 const parsePath = require("parse-filepath");
 const Template = require("./Template");
@@ -9,12 +9,17 @@ const TemplatePassthroughManager = require("./TemplatePassthroughManager");
 const EleventyError = require("./EleventyError");
 const TemplateGlob = require("./TemplateGlob");
 const EleventyExtensionMap = require("./EleventyExtensionMap");
-const eleventyConfig = require("./EleventyConfig");
 const config = require("./Config");
 const debug = require("debug")("Eleventy:TemplateWriter");
 const debugDev = require("debug")("Dev:Eleventy:TemplateWriter");
 
-function TemplateWriter(inputPath, outputDir, templateKeys, templateData) {
+function TemplateWriter(
+  inputPath,
+  outputDir,
+  templateKeys,
+  templateData,
+  isPassthroughAll
+) {
   this.config = config.getConfig();
   this.input = inputPath;
   this.inputDir = this._getInputPathDir(inputPath);
@@ -30,28 +35,40 @@ function TemplateWriter(inputPath, outputDir, templateKeys, templateData) {
   this.dataDir = this.inputDir + "/" + this.config.dir.data;
 
   this.extensionMap = new EleventyExtensionMap(this.templateKeys);
+  this.passthroughAll = isPassthroughAll;
 
   this.setPassthroughManager();
+  this.setupGlobs();
+}
 
+/* For testing */
+TemplateWriter.prototype.overrideConfig = function(config) {
+  this.config = config;
+};
+
+TemplateWriter.prototype.setupGlobs = function() {
   // Input was a directory
   if (this.input === this.inputDir) {
     this.templateGlobs = TemplateGlob.map(
       this.extensionMap.getGlobs(this.inputDir)
     );
   } else {
-    this.templateGlobs = TemplateGlob.map([inputPath]);
+    this.templateGlobs = TemplateGlob.map([this.input]);
   }
 
   this.cachedIgnores = this.getIgnores();
-  this.watchedGlobs = this.templateGlobs.concat(this.cachedIgnores);
+
+  if (this.passthroughAll) {
+    this.watchedGlobs = TemplateGlob.map([
+      TemplateGlob.normalizePath(this.input, "/**")
+    ]).concat(this.cachedIgnores);
+  } else {
+    this.watchedGlobs = this.templateGlobs.concat(this.cachedIgnores);
+  }
+
   this.templateGlobsWithIgnores = this.watchedGlobs.concat(
     this.getTemplateIgnores()
   );
-}
-
-/* For testing */
-TemplateWriter.prototype.overrideConfig = function(config) {
-  this.config = config;
 };
 
 TemplateWriter.prototype.setPassthroughManager = function(mgr) {
@@ -68,6 +85,7 @@ TemplateWriter.prototype.restart = function() {
   this.writeCount = 0;
   this.passthroughManager.reset();
   this.cachedPaths = null;
+  this.setupGlobs();
   debugDev("Resetting counts to 0");
 };
 
@@ -82,7 +100,7 @@ TemplateWriter.prototype.getDataDir = function() {
 TemplateWriter.prototype._getInputPathDir = function(inputPath) {
   // Input points to a file
   if (!TemplatePath.isDirectorySync(inputPath)) {
-    return parsePath(inputPath).dir;
+    return parsePath(inputPath).dir || ".";
   }
 
   // Input is a dir
@@ -209,8 +227,9 @@ TemplateWriter.prototype.getTemplateIgnores = function() {
 TemplateWriter.prototype._getAllPaths = async function() {
   debug("Searching for: %o", this.templateGlobsWithIgnores);
   if (!this.cachedPaths) {
-    // Note the gitignore: true option for globby is _really slow_
-    this.cachedPaths = await globby(this.templateGlobsWithIgnores); //, { gitignore: true });
+    this.cachedPaths = TemplatePath.addLeadingDotSlashArray(
+      await fastglob.async(this.templateGlobsWithIgnores)
+    );
   }
 
   return this.cachedPaths;
@@ -243,45 +262,60 @@ TemplateWriter.prototype._createTemplate = function(path) {
   return tmpl;
 };
 
-TemplateWriter.prototype._createTemplateMap = async function(paths) {
-  this.templateMap = new TemplateMap();
-
+TemplateWriter.prototype._addToTemplateMap = async function(paths) {
+  let promises = [];
   for (let path of paths) {
     if (TemplateRender.hasEngine(path)) {
-      await this.templateMap.add(this._createTemplate(path));
-      debug(`Template for ${path} added to map.`);
+      promises.push(
+        this.templateMap.add(this._createTemplate(path)).then(() => {
+          debug(`${path} added to map.`);
+        })
+      );
     }
   }
 
+  return Promise.all(promises);
+};
+
+TemplateWriter.prototype._createTemplateMap = async function(paths) {
+  this.templateMap = new TemplateMap();
+
+  await this._addToTemplateMap(paths);
   await this.templateMap.cache();
-  debugDev(`TemplateMap cache complete.`);
+
+  debugDev("TemplateMap cache complete.");
   return this.templateMap;
 };
 
 TemplateWriter.prototype._writeTemplate = async function(mapEntry) {
   let tmpl = mapEntry.template;
   try {
-    await tmpl.write(mapEntry.outputPath, mapEntry.data);
+    return tmpl.write(mapEntry.outputPath, mapEntry.data).then(() => {
+      this.writeCount += tmpl.getWriteCount();
+    });
   } catch (e) {
     throw EleventyError.make(
       new Error(`Having trouble writing template: ${mapEntry.outputPath}`),
       e
     );
   }
-
-  this.writeCount += tmpl.getWriteCount();
-  return tmpl;
 };
 
 TemplateWriter.prototype.write = async function() {
+  let promises = [];
   let paths = await this._getAllPaths();
   debug("Found: %o", paths);
 
-  await this.passthroughManager.copyAll(paths);
+  promises.push(this.passthroughManager.copyAll(paths));
+
+  // TODO optimize await here
   await this._createTemplateMap(paths);
+  debug("Template map created.");
+
   for (let mapEntry of this.templateMap.getMap()) {
-    await this._writeTemplate(mapEntry);
+    promises.push(this._writeTemplate(mapEntry));
   }
+  return Promise.all(promises);
 };
 
 TemplateWriter.prototype.setVerboseOutput = function(isVerbose) {

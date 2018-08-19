@@ -1,6 +1,5 @@
 import test from "ava";
 import TemplateRender from "../src/TemplateRender";
-import path from "path";
 
 // EJS
 test("EJS", t => {

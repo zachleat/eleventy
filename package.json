@@ -1,11 +1,11 @@
 {
   "name": "@11ty/eleventy",
-  "version": "0.3.6",
+  "version": "0.5.3",
   "description": "Transform a directory of templates into HTML.",
   "main": "src/Eleventy.js",
   "license": "MIT",
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=8"
   },
   "keywords": [
     "static-site-generator",
@@ -67,21 +67,21 @@
   "devDependencies": {
     "ava": "^0.25.0",
     "husky": "^0.14.3",
-    "lint-staged": "^7.0.0",
+    "lint-staged": "^7.2.0",
     "markdown-it-emoji": "^1.4.0",
-    "nyc": "^11.6.0",
-    "prettier": "1.11.1"
+    "nyc": "^12.0.2",
+    "prettier": "1.13.5",
+    "@11ty/eleventy-plugin-syntaxhighlight": "^1.0.5"
   },
   "dependencies": {
     "browser-sync": "^2.24.4",
-    "chalk": "^2.3.2",
-    "check-node-version": "^3.2.0",
+    "chalk": "^2.4.1",
     "debug": "^3.1.0",
-    "ejs": "^2.5.8",
-    "fs-extra": "^5.0.0",
+    "ejs": "^2.6.1",
+    "fast-glob": "^2.2.2",
+    "fs-extra": "^6.0.1",
     "glob-watcher": "^5.0.1",
-    "globby": "^7.1.1",
-    "gray-matter": "^3.1.1",
+    "gray-matter": "^4.0.1",
     "hamljs": "^0.6.2",
     "handlebars": "^4.0.11",
     "liquidjs": "^4.0.0",
@@ -92,19 +92,19 @@
     "lodash.merge": "^4.6.1",
     "lodash.set": "^4.3.2",
     "lodash.uniq": "^4.5.0",
-    "luxon": "^1.0.0",
+    "luxon": "^1.3.0",
     "markdown-it": "^8.4.1",
     "minimist": "^1.2.0",
     "multimatch": "^2.1.0",
     "mustache": "^2.3.0",
-    "normalize-path": "^2.1.1",
-    "nunjucks": "^3.1.2",
+    "normalize-path": "^3.0.0",
+    "nunjucks": "^3.1.3",
     "parse-filepath": "^1.0.2",
-    "pify": "^3.0.0",
+    "please-upgrade-node": "^3.1.1",
     "pretty": "^2.0.0",
     "pug": "^2.0.3",
     "semver": "^5.5.0",
-    "slugify": "^1.2.9",
+    "slugify": "^1.3.0",
     "time-require": "^0.1.2",
     "valid-url": "^1.0.9"
   }

@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const TemplatePath = require("./TemplatePath");
-const debug = require("debug")("Eleventy:TemplatePassthrough");
+// const debug = require("debug")("Eleventy:TemplatePassthrough");
 
 class TemplatePassthrough {
   constructor(inputPath, outputDir, inputDir) {

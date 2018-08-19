@@ -3,7 +3,7 @@ import TemplateRender from "../src/TemplateRender";
 import md from "markdown-it";
 import mdEmoji from "markdown-it-emoji";
 import UserConfig from "../src/UserConfig";
-// import eleventySyntaxHighlightPlugin from "@11ty/eleventy-plugin-syntaxhighlight";
+import eleventySyntaxHighlightPlugin from "@11ty/eleventy-plugin-syntaxhighlight";
 
 // Markdown
 test("Markdown", t => {
@@ -120,100 +120,118 @@ This is some code.
   t.is((await fn()).trim(), "<pre><code>This is overrrrrrride</code></pre>");
 });
 
-// TODO Uncomment these after syntax-highlighter v1.0.4 is released (and/or bundled—see #97)
+test("Markdown Render: use prism highlighter (no language)", async t => {
+  let tr = new TemplateRender("md");
+  let userConfig = new UserConfig();
+  userConfig.addPlugin(eleventySyntaxHighlightPlugin);
 
-// test("Markdown Render: use prism highlighter (no language)", async t => {
-//   let tr = new TemplateRender("md");
-//   let userConfig = new UserConfig();
-//   userConfig.addPlugin(eleventySyntaxHighlightPlugin);
+  let markdownHighlight = userConfig.getMergingConfigObject()
+    .markdownHighlighter;
 
-//   let markdownHighlight = userConfig.getMergingConfigObject().markdownHighlighter;
+  let mdLib = md();
+  mdLib.set({
+    highlight: markdownHighlight
+  });
+  tr.engine.setLibrary(mdLib);
 
-//   let mdLib = md();
-//   mdLib.set({
-//     "highlight": markdownHighlight
-//   });
-//   tr.engine.setLibrary(mdLib);
+  let fn = await tr.getCompiledTemplate(`\`\`\`
+This is some code.
+\`\`\``);
+  t.is(
+    (await fn()).trim(),
+    `<pre><code>This is some code.
+</code></pre>`
+  );
+});
 
-//   let fn = await tr.getCompiledTemplate(`\`\`\`
-// This is some code.
-// \`\`\``);
-//   t.is((await fn()).trim(), `<pre><code>This is some code.
-// </code></pre>`);
-// });
+test("Markdown Render: use prism highlighter", async t => {
+  let tr = new TemplateRender("md");
+  let userConfig = new UserConfig();
+  userConfig.addPlugin(eleventySyntaxHighlightPlugin);
 
-// test("Markdown Render: use prism highlighter", async t => {
-//   let tr = new TemplateRender("md");
-//   let userConfig = new UserConfig();
-//   userConfig.addPlugin(eleventySyntaxHighlightPlugin);
+  let markdownHighlight = userConfig.getMergingConfigObject()
+    .markdownHighlighter;
 
-//   let markdownHighlight = userConfig.getMergingConfigObject().markdownHighlighter;
+  let mdLib = md();
+  mdLib.set({
+    highlight: markdownHighlight
+  });
+  tr.engine.setLibrary(mdLib);
 
-//   let mdLib = md();
-//   mdLib.set({
-//     "highlight": markdownHighlight
-//   });
-//   tr.engine.setLibrary(mdLib);
+  let fn = await tr.getCompiledTemplate(`\`\`\` js
+var key = "value";
+\`\`\``);
+  t.is(
+    (await fn()).trim(),
+    `<pre class="language-js"><code class="language-js"><div class="highlight-line"><span class="token keyword">var</span> key <span class="token operator">=</span> <span class="token string">"value"</span><span class="token punctuation">;</span></div></code></pre>`
+  );
+});
 
-//   let fn = await tr.getCompiledTemplate(`\`\`\` js
-// var key = "value";
-// \`\`\``);
-//   t.is((await fn()).trim(), `<pre class="language-js"><code class="language-js"><div class="highlight-line"><span class="token keyword">var</span> key <span class="token operator">=</span> <span class="token string">"value"</span><span class="token punctuation">;</span></div></code></pre>`);
-// });
+test("Markdown Render: use prism highlighter (no space before language)", async t => {
+  let tr = new TemplateRender("md");
+  let userConfig = new UserConfig();
+  userConfig.addPlugin(eleventySyntaxHighlightPlugin);
 
-// test("Markdown Render: use prism highlighter (no space before language)", async t => {
-//   let tr = new TemplateRender("md");
-//   let userConfig = new UserConfig();
-//   userConfig.addPlugin(eleventySyntaxHighlightPlugin);
+  let markdownHighlight = userConfig.getMergingConfigObject()
+    .markdownHighlighter;
 
-//   let markdownHighlight = userConfig.getMergingConfigObject().markdownHighlighter;
+  let mdLib = md();
+  mdLib.set({
+    highlight: markdownHighlight
+  });
+  tr.engine.setLibrary(mdLib);
 
-//   let mdLib = md();
-//   mdLib.set({
-//     "highlight": markdownHighlight
-//   });
-//   tr.engine.setLibrary(mdLib);
+  let fn = await tr.getCompiledTemplate(`\`\`\`js
+var key = "value";
+\`\`\``);
+  t.is(
+    (await fn()).trim(),
+    `<pre class="language-js"><code class="language-js"><div class="highlight-line"><span class="token keyword">var</span> key <span class="token operator">=</span> <span class="token string">"value"</span><span class="token punctuation">;</span></div></code></pre>`
+  );
+});
 
-//   let fn = await tr.getCompiledTemplate(`\`\`\`js
-// var key = "value";
-// \`\`\``);
-//   t.is((await fn()).trim(), `<pre class="language-js"><code class="language-js"><div class="highlight-line"><span class="token keyword">var</span> key <span class="token operator">=</span> <span class="token string">"value"</span><span class="token punctuation">;</span></div></code></pre>`);
-// });
+test("Markdown Render: use prism highlighter, line highlighting", async t => {
+  let tr = new TemplateRender("md");
+  let userConfig = new UserConfig();
+  userConfig.addPlugin(eleventySyntaxHighlightPlugin);
 
-// test("Markdown Render: use prism highlighter, line highlighting", async t => {
-//   let tr = new TemplateRender("md");
-//   let userConfig = new UserConfig();
-//   userConfig.addPlugin(eleventySyntaxHighlightPlugin);
+  let markdownHighlight = userConfig.getMergingConfigObject()
+    .markdownHighlighter;
 
-//   let markdownHighlight = userConfig.getMergingConfigObject().markdownHighlighter;
+  let mdLib = md();
+  mdLib.set({
+    highlight: markdownHighlight
+  });
+  tr.engine.setLibrary(mdLib);
 
-//   let mdLib = md();
-//   mdLib.set({
-//     "highlight": markdownHighlight
-//   });
-//   tr.engine.setLibrary(mdLib);
+  let fn = await tr.getCompiledTemplate(`\`\`\`js/0
+var key = "value";
+\`\`\``);
+  t.is(
+    (await fn()).trim(),
+    `<pre class="language-js"><code class="language-js"><div class="highlight-line highlight-line-active"><span class="token keyword">var</span> key <span class="token operator">=</span> <span class="token string">"value"</span><span class="token punctuation">;</span></div></code></pre>`
+  );
+});
 
-//   let fn = await tr.getCompiledTemplate(`\`\`\`js/0
-// var key = "value";
-// \`\`\``);
-//   t.is((await fn()).trim(), `<pre class="language-js"><code class="language-js"><div class="highlight-line highlight-line-active"><span class="token keyword">var</span> key <span class="token operator">=</span> <span class="token string">"value"</span><span class="token punctuation">;</span></div></code></pre>`);
-// });
+test("Markdown Render: use prism highlighter, line highlighting with fallback `text` language.", async t => {
+  let tr = new TemplateRender("md");
+  let userConfig = new UserConfig();
+  userConfig.addPlugin(eleventySyntaxHighlightPlugin);
 
-// test("Markdown Render: use prism highlighter, line highlighting with fallback `text` language.", async t => {
-//   let tr = new TemplateRender("md");
-//   let userConfig = new UserConfig();
-//   userConfig.addPlugin(eleventySyntaxHighlightPlugin);
+  let markdownHighlight = userConfig.getMergingConfigObject()
+    .markdownHighlighter;
 
-//   let markdownHighlight = userConfig.getMergingConfigObject().markdownHighlighter;
+  let mdLib = md();
+  mdLib.set({
+    highlight: markdownHighlight
+  });
+  tr.engine.setLibrary(mdLib);
 
-//   let mdLib = md();
-//   mdLib.set({
-//     "highlight": markdownHighlight
-//   });
-//   tr.engine.setLibrary(mdLib);
-
-//   let fn = await tr.getCompiledTemplate(`\`\`\` text/0
-// var key = "value";
-// \`\`\``);
-//   t.is((await fn()).trim(), `<pre class="language-text"><code class="language-text"><div class="highlight-line highlight-line-active">var key = "value";</div></code></pre>`);
-// });
+  let fn = await tr.getCompiledTemplate(`\`\`\` text/0
+var key = "value";
+\`\`\``);
+  t.is(
+    (await fn()).trim(),
+    `<pre class="language-text"><code class="language-text"><div class="highlight-line highlight-line-active">var key = "value";</div></code></pre>`
+  );
+});
