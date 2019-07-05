@@ -1757,6 +1757,39 @@ test.skip("Custom Front Matter Parsing Options (using TOML)", async t => {
   t.is(fulldata.front, "hello");
 });
 
+test.skip("__dirname in njk Issue #581", async t => {
+  // https://github.com/jonschlinkert/gray-matter/blob/master/examples/javascript.js
+  let tmpl = new Template(
+    "./test/stubs/dirname/dirname.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  // let fm = await tmpl.getFrontMatter();
+  // t.is(fm.data.dirfn(), "value1");
+  // t.is(fm.data.file, "value1");
+  // t.is(fm.data.dir, "value1");
+
+  let data = await tmpl.getData();
+  // t.is(data.dir, "value1");
+
+  let pages = await tmpl.getRenderedTemplates(data);
+  t.is(pages[0].templateContent.trim(), "value1");
+});
+
+test.skip("__dirname in ejs Issue #581", async t => {
+  // https://github.com/jonschlinkert/gray-matter/blob/master/examples/javascript.js
+  let tmpl = new Template(
+    "./test/stubs/dirname/dirname.ejs",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let pages = await tmpl.getRenderedTemplates(data);
+  t.is(pages[0].templateContent.trim(), "value1");
+});
+
 test("global variable with dashes Issue #567 (liquid)", async t => {
   let tmpl = new Template(
     "./test/stubs/global-dash-variable.liquid",
