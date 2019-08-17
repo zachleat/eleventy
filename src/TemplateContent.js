@@ -139,6 +139,15 @@ class TemplateContent {
     return frontMatterData[this.config.keys.engineOverride];
   }
 
+  getTemplateLanguageString(data) {
+    let ret = [];
+    if (this.config.keys.engineOverride in data) {
+      ret.push(data[this.config.keys.engineOverride]);
+    }
+    ret.push(this.templateRender.engineName);
+    return ret.join(" ");
+  }
+
   async setupTemplateRender(bypassMarkdown) {
     let engineOverride = await this.getEngineOverride();
     if (engineOverride !== undefined) {

@@ -480,7 +480,7 @@ class Template extends TemplateContent {
     return await this.render(data);
   }
 
-  async _write(outputPath, finalContent) {
+  async _write(outputPath, finalContent, data) {
     if (outputPath === false) {
       debug(
         "Ignored %o from %o (permalink: false).",
@@ -505,7 +505,7 @@ class Template extends TemplateContent {
     }
 
     if (this.isVerbose) {
-      console.log(`${lang.start} ${outputPath} from ${this.inputPath}.`);
+      console.log(`${lang.start} ${outputPath} from ${this.inputPath}.`); // (${this.getTemplateLanguageString(data)})
     } else {
       debug(`${lang.start} %o from %o.`, outputPath, this.inputPath);
     }
@@ -545,7 +545,7 @@ class Template extends TemplateContent {
     let promises = [];
     for (let page of mapEntry._pages) {
       let content = await this.renderPageEntry(mapEntry, page);
-      promises.push(this._write(page.outputPath, content));
+      promises.push(this._write(page.outputPath, content, page.data));
     }
 
     return Promise.all(promises);
@@ -555,7 +555,9 @@ class Template extends TemplateContent {
     let templates = await this.getRenderedTemplates(data);
     let promises = [];
     for (let tmpl of templates) {
-      promises.push(this._write(tmpl.outputPath, tmpl.templateContent));
+      promises.push(
+        this._write(tmpl.outputPath, tmpl.templateContent, tmpl.data)
+      );
     }
 
     return Promise.all(promises);
