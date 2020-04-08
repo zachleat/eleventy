@@ -2,6 +2,8 @@ const TemplatePath = require("./TemplatePath");
 const TemplateEngineManager = require("./TemplateEngineManager");
 const EleventyBaseError = require("./EleventyBaseError");
 const EleventyExtensionMap = require("./EleventyExtensionMap");
+const TemplateRenderCache = require("./TemplateRenderCache");
+const globalTemplateRenderCache = new TemplateRenderCache();
 // const debug = require("debug")("Eleventy:TemplateRender");
 
 class TemplateRenderUnknownEngineError extends EleventyBaseError {}
@@ -204,24 +206,49 @@ class TemplateRender {
     return this.engine._testRender(str, data);
   }
 
+  _getCacheKey(str) {
+    if (this.engineName === "md") {
+      return `${this.engineNameOrPath}|${this.parseMarkdownWith}|${this.useMarkdown}|${str}`;
+    } else if (this.engineName === "html") {
+      return `${this.engineNameOrPath}|${this.parseHtmlWith}|${str}`;
+    }
+    return `${this.engineNameOrPath}|${str}`;
+  }
+
+  _getCachedFn(str) {
+    let key = this._getCacheKey(str);
+    if (globalTemplateRenderCache.has(key)) {
+      return globalTemplateRenderCache.get(key);
+    }
+  }
+
+  _addCachedFn(str, fn) {
+    let key = this._getCacheKey(str);
+    globalTemplateRenderCache.add(key, fn);
+  }
+
   async getCompiledTemplate(str) {
+    let cachedFn = this._getCachedFn(str);
+    if (cachedFn) {
+      return cachedFn;
+    }
+
+    let fn;
     // TODO refactor better, move into TemplateEngine logic
     if (this.engineName === "md") {
-      return this.engine.compile(
+      fn = this.engine.compile(
         str,
         this.engineNameOrPath,
         this.parseMarkdownWith,
         !this.useMarkdown
       );
     } else if (this.engineName === "html") {
-      return this.engine.compile(
-        str,
-        this.engineNameOrPath,
-        this.parseHtmlWith
-      );
+      fn = this.engine.compile(str, this.engineNameOrPath, this.parseHtmlWith);
     } else {
-      return this.engine.compile(str, this.engineNameOrPath);
+      fn = this.engine.compile(str, this.engineNameOrPath);
     }
+    this._addCachedFn(str, fn);
+    return fn;
   }
 }
 
