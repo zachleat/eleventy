@@ -1,3 +1,4 @@
+const EventEmitter = require("events");
 const chalk = require("chalk");
 const EleventyErrorUtil = require("./EleventyErrorUtil");
 const debug = require("debug")("Eleventy:EleventyErrorHandler");
@@ -27,6 +28,8 @@ class EleventyErrorHandler {
   }
 
   static error(e, msg) {
+    EleventyErrorHandler.events.emit("errorLogged", e);
+
     if (msg) {
       EleventyErrorHandler.initialMessage(msg, "error", "red");
     }
@@ -98,5 +101,7 @@ class EleventyErrorHandler {
     }
   }
 }
+
+EleventyErrorHandler.events = new EventEmitter();
 
 module.exports = EleventyErrorHandler;

@@ -20,7 +20,8 @@ test("Get Options", t => {
   };
   es.setOutputDir("_site");
 
-  t.deepEqual(es.getOptions(), {
+  const options = es.getOptions();
+  t.deepEqual(options, {
     ignore: ["node_modules"],
     index: "index.html",
     notify: false,
@@ -29,6 +30,7 @@ test("Get Options", t => {
     server: {
       baseDir: "_site"
     },
+    middleware: options.middleware,
     watch: false
   });
 });
@@ -40,7 +42,8 @@ test("Get Options (with a pathPrefix)", t => {
   };
   es.setOutputDir("_site");
 
-  t.deepEqual(es.getOptions(), {
+  const options = es.getOptions();
+  t.deepEqual(options, {
     ignore: ["node_modules"],
     index: "index.html",
     notify: false,
@@ -52,6 +55,7 @@ test("Get Options (with a pathPrefix)", t => {
         "/web/": "_site"
       }
     },
+    middleware: options.middleware,
     watch: false
   });
 });
@@ -66,7 +70,8 @@ test("Get Options (override in config)", t => {
   };
   es.setOutputDir("_site");
 
-  t.deepEqual(es.getOptions(), {
+  const options = es.getOptions();
+  t.deepEqual(options, {
     ignore: ["node_modules"],
     index: "index.html",
     notify: true,
@@ -75,6 +80,7 @@ test("Get Options (override in config)", t => {
     server: {
       baseDir: "_site"
     },
+    middleware: options.middleware,
     watch: false
   });
 });

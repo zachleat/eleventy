@@ -565,6 +565,14 @@ Arguments:
     benchmark.before();
     await this._initWatchDependencies();
     benchmark.after();
+
+    // Error overlay in development
+    this.config.events.on("beforeWatch", () => {
+      this.eleventyServe.clearError();
+    });
+    EleventyErrorHandler.events.on("errorLogged", error => {
+      this.eleventyServe.showError(error);
+    });
   }
 
   /**

@@ -54,3 +54,14 @@ test("Log a warning, error", t => {
     Error: Test error`;
   t.is(output.join("\n").substr(0, expected.length), expected);
 });
+
+test.cb("Events", t => {
+  const testError = new Error();
+
+  EleventyErrorHandler.events.on("errorLogged", function(error) {
+    t.is(error, testError);
+    t.end();
+  });
+
+  EleventyErrorHandler.error(testError);
+});
