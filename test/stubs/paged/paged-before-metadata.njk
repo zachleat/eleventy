@@ -1,0 +1,14 @@
+---js
+{
+  keyword: "item3",
+  pagination: {
+    data: "items",
+    size: 1,
+    before: function(data, metadata) {
+      return data.filter(el => el === metadata.keyword);
+    }
+  },
+  items: ["item1", "item2", "item3", "item4", "item5", "item6"]
+}
+---
+<ol>{% for item in pagination.items %}<li>{{ item }}</li>{% endfor %}</ol>

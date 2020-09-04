@@ -606,6 +606,18 @@ test("Pagination `before` Callback", async t => {
   t.deepEqual(templates[0].data.myalias, "item6");
 });
 
+test("Pagination `before` Callback with metadata", async t => {
+  let tmpl = new Template(
+    "./test/stubs/paged/paged-before-metadata.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let templates = await tmpl.getTemplates(data);
+  t.deepEqual(templates[0].data.pagination.items, ["item3"]);
+});
+
 test("Pagination `before` Callback with a Filter", async t => {
   let tmpl = new Template(
     "./test/stubs/paged/paged-before-filter.njk",
