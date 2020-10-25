@@ -4,8 +4,20 @@ const EleventyFiles = require("../src/EleventyFiles");
 const TemplatePath = require("../src/TemplatePath");
 const TemplatePassthroughManager = require("../src/TemplatePassthroughManager");
 
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
+
+const getEleventyFiles = (...args) => {
+  args = args.concat(Array(4).fill(null)).slice(0, 4).concat(templateConfig);
+  return new EleventyFiles(...args);
+};
+
 test("getFiles", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/writeTest",
     "./test/stubs/_writeTestSite",
     ["ejs", "md"]
@@ -16,7 +28,7 @@ test("getFiles", async (t) => {
 });
 
 test("getFiles (without 11ty.js)", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/writeTestJS",
     "./test/stubs/_writeTestJSSite",
     ["ejs", "md"]
@@ -27,7 +39,7 @@ test("getFiles (without 11ty.js)", async (t) => {
 });
 
 test("getFiles (with 11ty.js)", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/writeTestJS",
     "./test/stubs/_writeTestJSSite",
     ["ejs", "md", "11ty.js"]
@@ -38,7 +50,7 @@ test("getFiles (with 11ty.js)", async (t) => {
 });
 
 test("getFiles (with js, treated as passthrough copy)", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/writeTestJS",
     "./test/stubs/_writeTestJSSite",
     ["ejs", "md", "js"]
@@ -59,7 +71,7 @@ test("getFiles (with js, treated as passthrough copy)", async (t) => {
 });
 
 test("getFiles (with case insensitivity)", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/writeTestJS-casesensitive",
     "./test/stubs/_writeTestJSCaseSensitiveSite",
     ["JS"]
@@ -86,7 +98,7 @@ test("getFiles (with case insensitivity)", async (t) => {
 });
 
 test("Mutually exclusive Input and Output dirs", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/writeTest",
     "./test/stubs/_writeTestSite",
     ["ejs", "md"]
@@ -100,7 +112,7 @@ test("Mutually exclusive Input and Output dirs", async (t) => {
 });
 
 test("Single File Input (deep path)", async (t) => {
-  let evf = new EleventyFiles("./test/stubs/index.html", "./test/stubs/_site", [
+  let evf = getEleventyFiles("./test/stubs/index.html", "./test/stubs/_site", [
     "ejs",
     "md",
   ]);
@@ -113,7 +125,7 @@ test("Single File Input (deep path)", async (t) => {
 });
 
 test("Single File Input (shallow path)", async (t) => {
-  let evf = new EleventyFiles("README.md", "./test/stubs/_site", ["md"]);
+  let evf = getEleventyFiles("README.md", "./test/stubs/_site", ["md"]);
   evf.init();
 
   let globs = evf.getFileGlobs().filter((path) => path !== "!./README.md");
@@ -124,7 +136,7 @@ test("Single File Input (shallow path)", async (t) => {
 });
 
 test("Glob Input", async (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "./test/stubs/glob-pages/!(contact.md)",
     "./test/stubs/_site",
     ["md"]
@@ -175,7 +187,7 @@ test("defaults if passed file name does not exist", (t) => {
 });
 
 test(".eleventyignore files", async (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", ["ejs", "md"]);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", ["ejs", "md"]);
   evf.init();
   let ignoredFiles = await fastglob("test/stubs/ignoredFolder/*.md");
   t.is(ignoredFiles.length, 1);
@@ -194,7 +206,7 @@ test(".eleventyignore files", async (t) => {
 
 /* .eleventyignore and .gitignore combos */
 test("Get ignores (no .eleventyignore no .gitignore)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore1",
     "test/stubs/ignore1/_site",
     []
@@ -213,7 +225,7 @@ test("Get ignores (no .eleventyignore no .gitignore)", (t) => {
 });
 
 test("Get ignores (no .eleventyignore)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore2",
     "test/stubs/ignore2/_site",
     []
@@ -229,7 +241,7 @@ test("Get ignores (no .eleventyignore)", (t) => {
 });
 
 test("Get ignores (no .eleventyignore, using setUseGitIgnore(false))", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore2",
     "test/stubs/ignore2/_site",
     []
@@ -251,7 +263,7 @@ test("Get ignores (no .eleventyignore, using setUseGitIgnore(false))", (t) => {
 });
 
 test("Get ignores (no .gitignore)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore3",
     "test/stubs/ignore3/_site",
     []
@@ -271,7 +283,7 @@ test("Get ignores (no .gitignore)", (t) => {
 });
 
 test("Get ignores (both .eleventyignore and .gitignore)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore4",
     "test/stubs/ignore4/_site",
     []
@@ -289,7 +301,7 @@ test("Get ignores (both .eleventyignore and .gitignore)", (t) => {
 });
 
 test("Get ignores (both .eleventyignore and .gitignore, using setUseGitIgnore(false))", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore4",
     "test/stubs/ignore4/_site",
     []
@@ -313,7 +325,7 @@ test("Get ignores (both .eleventyignore and .gitignore, using setUseGitIgnore(fa
 });
 
 test("Get ignores (no .eleventyignore  .gitignore exists but empty)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore5",
     "test/stubs/ignore5/_site",
     []
@@ -332,7 +344,7 @@ test("Get ignores (no .eleventyignore  .gitignore exists but empty)", (t) => {
 });
 
 test("Get ignores (both .eleventyignore and .gitignore exists, but .gitignore is empty)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore6",
     "test/stubs/ignore6/_site",
     []
@@ -352,7 +364,7 @@ test("Get ignores (both .eleventyignore and .gitignore exists, but .gitignore is
 });
 
 test("Get ignores (no .eleventyignore  .gitignore exists but has spaces inside)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore7",
     "test/stubs/ignore7/_site",
     []
@@ -371,7 +383,7 @@ test("Get ignores (no .eleventyignore  .gitignore exists but has spaces inside)"
 });
 
 test("Get ignores (both .eleventyignore and .gitignore exists, but .gitignore has spaces inside)", (t) => {
-  let evf = new EleventyFiles(
+  let evf = getEleventyFiles(
     "test/stubs/ignore8",
     "test/stubs/ignore8/_site",
     []
@@ -392,7 +404,7 @@ test("Get ignores (both .eleventyignore and .gitignore exists, but .gitignore ha
 /* End .eleventyignore and .gitignore combos */
 
 test("getTemplateData caching", (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", []);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", []);
   evf.init();
   let templateDataFirstCall = evf.getTemplateData();
   let templateDataSecondCall = evf.getTemplateData();
@@ -400,19 +412,19 @@ test("getTemplateData caching", (t) => {
 });
 
 test("getDataDir", (t) => {
-  let evf = new EleventyFiles(".", "_site", []);
+  let evf = getEleventyFiles(".", "_site", []);
   evf.init();
   t.is(evf.getDataDir(), "_data");
 });
 
 test("getDataDir subdir", (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", []);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", []);
   evf.init();
   t.is(evf.getDataDir(), "test/stubs/_data");
 });
 
 test("Include and Data Dirs", (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", []);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", []);
   evf.init();
 
   t.deepEqual(evf._getIncludesAndDataDirs(), [
@@ -422,7 +434,7 @@ test("Include and Data Dirs", (t) => {
 });
 
 test("Ignore Include and Data Dirs", (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", []);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", []);
   evf.init();
 
   t.deepEqual(evf._getIncludesAndDataDirIgnores(), [
@@ -432,7 +444,7 @@ test("Ignore Include and Data Dirs", (t) => {
 });
 
 test("Input to 'src' and empty includes dir (issue #403)", (t) => {
-  let evf = new EleventyFiles("src", "src/_site", ["md", "liquid", "html"]);
+  let evf = getEleventyFiles("src", "src/_site", ["md", "liquid", "html"]);
   evf._setConfig({
     useGitIgnore: false,
     eleventyignoreOverride: "!./src/_includes/**",
@@ -456,7 +468,7 @@ test("Input to 'src' and empty includes dir (issue #403)", (t) => {
 });
 
 test("Bad expected output, this indicates a bug upstream in a dependency.  Input to 'src' and empty includes dir (issue #403, full paths in eleventyignore)", async (t) => {
-  let evf = new EleventyFiles("test/stubs-403", "test/stubs-403/_site", [
+  let evf = getEleventyFiles("test/stubs-403", "test/stubs-403/_site", [
     "liquid",
   ]);
   evf._setConfig({
@@ -480,7 +492,7 @@ test("Bad expected output, this indicates a bug upstream in a dependency.  Input
 });
 
 test("Workaround for Bad expected output, this indicates a bug upstream in a dependency.  Input to 'src' and empty includes dir (issue #403, full paths in eleventyignore)", async (t) => {
-  let evf = new EleventyFiles("test/stubs-403", "test/stubs-403/_site", [
+  let evf = getEleventyFiles("test/stubs-403", "test/stubs-403/_site", [
     "liquid",
   ]);
   evf._setConfig({
@@ -499,7 +511,7 @@ test("Workaround for Bad expected output, this indicates a bug upstream in a dep
 });
 
 test("Issue #403: all .eleventyignores should be relative paths not absolute paths", async (t) => {
-  let evf = new EleventyFiles("test/stubs-403", "test/stubs-403/_site", [
+  let evf = getEleventyFiles("test/stubs-403", "test/stubs-403/_site", [
     "liquid",
   ]);
   evf._setConfig({
@@ -523,7 +535,7 @@ test("Issue #403: all .eleventyignores should be relative paths not absolute pat
 });
 
 test("Glob Watcher Files", async (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", ["njk"]);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", ["njk"]);
   evf.init();
 
   t.deepEqual(evf.getGlobWatcherFiles(), [
@@ -534,7 +546,7 @@ test("Glob Watcher Files", async (t) => {
 });
 
 test("Glob Watcher Files with File Extension Passthroughs", async (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", ["njk", "png"]);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", ["njk", "png"]);
   evf.init();
 
   t.deepEqual(evf.getGlobWatcherFiles(), [
@@ -546,10 +558,10 @@ test("Glob Watcher Files with File Extension Passthroughs", async (t) => {
 });
 
 test("Glob Watcher Files with Config Passthroughs (one template format)", async (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", ["njk"]);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", ["njk"]);
   evf.init();
 
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setInputDir("test/stubs");
   mgr.setOutputDir("test/stubs/_site");
   mgr.setConfig({
@@ -569,7 +581,7 @@ test("Glob Watcher Files with Config Passthroughs (one template format)", async 
 });
 
 test("Glob Watcher Files with Config Passthroughs (no template formats)", async (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", []);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", []);
   evf.init();
 
   t.deepEqual(await evf.getGlobWatcherTemplateDataFiles(), [
@@ -580,7 +592,7 @@ test("Glob Watcher Files with Config Passthroughs (no template formats)", async 
 });
 
 test("Glob Watcher Files with passthroughAll", async (t) => {
-  let evf = new EleventyFiles("test/stubs", "test/stubs/_site", [], true);
+  let evf = getEleventyFiles("test/stubs", "test/stubs/_site", [], true);
   evf.init();
 
   t.is((await evf.getFileGlobs())[0], "./test/stubs/**");

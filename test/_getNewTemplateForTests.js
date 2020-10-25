@@ -6,22 +6,33 @@ module.exports = function getNewTemplate(
   inputDir,
   outputDir,
   templateData = null,
-  map = null
+  map = null,
+  templateConfig
 ) {
   if (!map) {
-    map = new EleventyExtensionMap([
-      "liquid",
-      "ejs",
-      "md",
-      "hbs",
-      "mustache",
-      "haml",
-      "pug",
-      "njk",
-      "html",
-      "11ty.js",
-    ]);
+    map = new EleventyExtensionMap(
+      [
+        "liquid",
+        "ejs",
+        "md",
+        "hbs",
+        "mustache",
+        "haml",
+        "pug",
+        "njk",
+        "html",
+        "11ty.js",
+      ],
+      templateConfig
+    );
   }
-  let tmpl = new Template(path, inputDir, outputDir, templateData, map);
+  let tmpl = new Template(
+    path,
+    inputDir,
+    outputDir,
+    templateData,
+    map,
+    templateConfig
+  );
   return tmpl;
 };

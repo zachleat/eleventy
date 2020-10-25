@@ -1,17 +1,25 @@
 const test = require("ava");
 const fs = require("fs-extra");
 const pretty = require("pretty");
-const Template = require("../src/Template");
 const TemplateData = require("../src/TemplateData");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
 const EleventyErrorUtil = require("../src/EleventyErrorUtil");
 const TemplateContentPrematureUseError = require("../src/Errors/TemplateContentPrematureUseError");
 const normalizeNewLines = require("./Util/normalizeNewLines");
-
 const templateConfig = require("../src/Config");
-const config = templateConfig.getConfig();
 
-const getNewTemplate = require("./_getNewTemplateForTests");
+let config = {};
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+  config = templateConfig.getConfig();
+});
+
+const getNewTemplate = (...args) => {
+  // monkey patching to add templateConfig to the end of every call
+  args = args.concat(Array(5).fill(null)).slice(0, 5).concat(templateConfig);
+  return require("./_getNewTemplateForTests").apply(null, args);
+};
 
 async function getRenderedData(tmpl, pageNumber = 0) {
   let data = await tmpl.getData();
@@ -174,7 +182,7 @@ test("Test that getData() works", async (t) => {
 });
 
 test("One Layout (using new content var)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/templateWithLayout.ejs",
     "./test/stubs/",
@@ -199,7 +207,7 @@ test("One Layout (using new content var)", async (t) => {
 });
 
 test("One Layout (using layoutContent)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/templateWithLayoutContent.ejs",
     "./test/stubs/",
@@ -227,7 +235,7 @@ test("One Layout (using layoutContent)", async (t) => {
 });
 
 test("One Layout (layouts disabled)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/templateWithLayoutContent.ejs",
     "./test/stubs/",
@@ -252,7 +260,7 @@ test("One Layout (layouts disabled)", async (t) => {
 });
 
 test("One Layout (_layoutContent deprecated but supported)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/templateWithLayoutBackCompat.ejs",
     "./test/stubs/",
@@ -280,7 +288,7 @@ test("One Layout (_layoutContent deprecated but supported)", async (t) => {
 });
 
 test("One Layout (liquid test)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/templateWithLayout.liquid",
     "./test/stubs/",
@@ -308,7 +316,7 @@ test("One Layout (liquid test)", async (t) => {
 });
 
 test("Two Layouts", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/templateTwoLayouts.ejs",
     "./test/stubs/",
@@ -335,7 +343,7 @@ test("Two Layouts", async (t) => {
 });
 
 test("Liquid template", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/formatTest.liquid",
     "./test/stubs/",
@@ -390,7 +398,7 @@ test("Permalink output directory from layout (fileslug)", async (t) => {
 });
 
 test("Layout from template-data-file that has a permalink (fileslug) Issue #121", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/permalink-data-layout/test.njk",
     "./test/stubs/",
@@ -417,7 +425,7 @@ test("Fileslug in an 11ty.js template Issue #588", async (t) => {
 });
 
 test("Local template data file import (without a global data json)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -443,7 +451,7 @@ test("Local template data file import (without a global data json)", async (t) =
 });
 
 test("Local template data file import (two subdirectories deep)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -474,7 +482,7 @@ test("Local template data file import (two subdirectories deep)", async (t) => {
 });
 
 test("Posts inherits local JSON, layouts", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -515,7 +523,7 @@ test("Posts inherits local JSON, layouts", async (t) => {
 });
 
 test("Template and folder name are the same, make sure data imports work ok", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -617,7 +625,7 @@ test("Permalink with dates on file name regex!", async (t) => {
 });
 
 test("Reuse permalink in directory specific data file", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/reuse-permalink/test1.liquid",
     "./test/stubs/",
@@ -1415,7 +1423,7 @@ test("Data Cascade (Deep merge)", async (t) => {
   let newConfig = Object.assign({}, config);
   newConfig.dataDeepMerge = true;
 
-  let dataObj = new TemplateData("./test/");
+  let dataObj = new TemplateData("./test/", templateConfig);
   dataObj._setConfig(newConfig);
   await dataObj.cacheData();
 
@@ -1447,7 +1455,7 @@ test("Data Cascade (Deep merge)", async (t) => {
 });
 
 test("Data Cascade (Shallow merge)", async (t) => {
-  let dataObj = new TemplateData("./test/");
+  let dataObj = new TemplateData("./test/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -1476,7 +1484,7 @@ test("Data Cascade Tag Merge (Deep merge)", async (t) => {
   let newConfig = Object.assign({}, config);
   newConfig.dataDeepMerge = true;
 
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   dataObj._setConfig(newConfig);
   await dataObj.cacheData();
 
@@ -1493,7 +1501,7 @@ test("Data Cascade Tag Merge (Deep merge)", async (t) => {
 });
 
 test("Data Cascade Tag Merge (Shallow merge)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -1508,7 +1516,7 @@ test("Data Cascade Tag Merge (Shallow merge)", async (t) => {
 });
 
 test('Local data inherits tags string ([tags] vs "tags") Shallow Merge', async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   await dataObj.cacheData();
 
   let tmpl = getNewTemplate(
@@ -1526,7 +1534,7 @@ test('Local data inherits tags string ([tags] vs "tags") Deep Merge', async (t) 
   let newConfig = Object.assign({}, config);
   newConfig.dataDeepMerge = true;
 
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   dataObj._setConfig(newConfig);
   await dataObj.cacheData();
 
@@ -1991,7 +1999,8 @@ test("Issue #446: Layout has a permalink with a different template language than
 // Prior to and including 0.10.0 this mismatched the documentation)!
 test("Layout front matter should override template files", async (t) => {
   let dataObj = new TemplateData(
-    "./test/stubs-data-cascade/layout-data-files/"
+    "./test/stubs-data-cascade/layout-data-files/",
+    templateConfig
   );
   let tmpl = getNewTemplate(
     "./test/stubs-data-cascade/layout-data-files/test.njk",
@@ -2019,7 +2028,7 @@ test("Get Layout Chain", async (t) => {
 });
 
 test("Engine Singletons", async (t) => {
-  let map = new EleventyExtensionMap(["njk"]);
+  let map = new EleventyExtensionMap(["njk"], templateConfig);
   let tmpl1 = getNewTemplate(
     "./test/stubs/engine-singletons/first.njk",
     "./test/stubs/engine-singletons/",

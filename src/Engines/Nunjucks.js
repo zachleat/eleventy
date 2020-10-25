@@ -7,8 +7,8 @@ const EleventyBaseError = require("../EleventyBaseError");
 class EleventyShortcodeError extends EleventyBaseError {}
 
 class Nunjucks extends TemplateEngine {
-  constructor(name, includesDir) {
-    super(name, includesDir);
+  constructor(name, includesDir, templateConfig) {
+    super(name, includesDir, templateConfig);
 
     this.setLibrary(this.config.libraryOverrides.njk);
 

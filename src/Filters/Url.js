@@ -1,7 +1,7 @@
 const validUrl = require("valid-url");
 const TemplatePath = require("../TemplatePath");
 
-module.exports = function(url, pathPrefix) {
+module.exports = (eleventyConfig) => (url, pathPrefix) => {
   // work with undefined
   url = url || "";
 
@@ -14,7 +14,7 @@ module.exports = function(url, pathPrefix) {
   }
 
   if (pathPrefix === undefined || typeof pathPrefix !== "string") {
-    let projectConfig = require("../Config").getConfig();
+    let projectConfig = eleventyConfig.getConfig();
     pathPrefix = projectConfig.pathPrefix;
   }
 

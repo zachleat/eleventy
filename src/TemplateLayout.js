@@ -5,20 +5,19 @@ const TemplatePath = require("./TemplatePath");
 
 // TODO move this into the constructor
 const templateCache = require("./TemplateCache");
-const config = require("./Config");
 // const debug = require("debug")("Eleventy:TemplateLayout");
 const debugDev = require("debug")("Dev:Eleventy:TemplateLayout");
 
 class TemplateLayout extends TemplateContent {
-  constructor(key, inputDir, extensionMap) {
-    // TODO getConfig() is duplicated in TemplateContent (super)
-    let cfg = config.getConfig();
+  constructor(key, inputDir, extensionMap, templateConfig) {
     let resolvedPath = new TemplateLayoutPathResolver(
       key,
       inputDir,
-      extensionMap
+      extensionMap,
+      templateConfig
     ).getFullPath();
-    super(resolvedPath, inputDir);
+
+    super(resolvedPath, inputDir, templateConfig);
 
     if (!extensionMap) {
       throw new Error("Expected `extensionMap` in TemplateLayout constructor.");
@@ -26,23 +25,21 @@ class TemplateLayout extends TemplateContent {
     this.extensionMap = extensionMap;
     this.dataKeyLayoutPath = key;
     this.inputPath = resolvedPath;
-    this.inputDir = inputDir;
-    this.config = cfg;
   }
 
   static resolveFullKey(key, inputDir) {
     return TemplatePath.join(inputDir, key);
   }
 
-  static getTemplate(key, inputDir, config, extensionMap) {
+  static getTemplate(key, inputDir, templateConfig, extensionMap) {
     let fullKey = TemplateLayout.resolveFullKey(key, inputDir);
     if (templateCache.has(fullKey)) {
       debugDev("Found %o in TemplateCache", key);
       return templateCache.get(fullKey);
     }
 
-    let tmpl = new TemplateLayout(key, inputDir, extensionMap);
-    tmpl.config = config;
+    let tmpl = new TemplateLayout(key, inputDir, extensionMap, templateConfig);
+    tmpl.config = templateConfig.getConfig();
     templateCache.add(fullKey, tmpl);
 
     return tmpl;
@@ -52,7 +49,7 @@ class TemplateLayout extends TemplateContent {
     return {
       key: this.dataKeyLayoutPath,
       template: this,
-      frontMatterData: await this.getFrontMatterData()
+      frontMatterData: await this.getFrontMatterData(),
     };
   }
 
@@ -70,7 +67,7 @@ class TemplateLayout extends TemplateContent {
       let layout = TemplateLayout.getTemplate(
         mapEntry.frontMatterData[cfgKey],
         this.inputDir,
-        this.config,
+        this.templateConfig,
         this.extensionMap
       );
       mapEntry = await layout.getTemplateLayoutMapEntry();

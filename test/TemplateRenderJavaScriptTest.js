@@ -1,10 +1,16 @@
 const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 function getNewTemplateRender(name, inputDir) {
-  let tr = new TemplateRender(name, inputDir);
-  tr.extensionMap = new EleventyExtensionMap();
+  let tr = new TemplateRender(name, inputDir, templateConfig);
+  tr.extensionMap = new EleventyExtensionMap([], templateConfig);
   return tr;
 }
 
@@ -14,9 +20,16 @@ test("JS", (t) => {
     getNewTemplateRender("./test/stubs/filename.11ty.js").getEngineName(),
     "11ty.js"
   );
-  t.is(new TemplateRender("11ty.cjs").getEngineName(), "11ty.js");
   t.is(
-    new TemplateRender("./test/stubs/filename.11ty.cjs").getEngineName(),
+    new TemplateRender("11ty.cjs", null, templateConfig).getEngineName(),
+    "11ty.js"
+  );
+  t.is(
+    new TemplateRender(
+      "./test/stubs/filename.11ty.cjs",
+      null,
+      templateConfig
+    ).getEngineName(),
     "11ty.js"
   );
 });
@@ -213,7 +226,11 @@ test.skip("Issue #934: JS Render with an arrow function and javascript function"
 test("JS Render with a function and async filter", async (t) => {
   t.plan(4);
 
-  let tr = new TemplateRender("./test/stubs/function-async-filter.11ty.js");
+  let tr = new TemplateRender(
+    "./test/stubs/function-async-filter.11ty.js",
+    null,
+    templateConfig
+  );
   tr.config = {
     javascriptFunctions: {
       upper: function (val) {
@@ -291,7 +308,11 @@ test("JS Class Async Render with a function", async (t) => {
 });
 
 test("JS Class Async Render with a function (sync function, throws error)", async (t) => {
-  let tr = new TemplateRender("./test/stubs/function-throws.11ty.js");
+  let tr = new TemplateRender(
+    "./test/stubs/function-throws.11ty.js",
+    null,
+    templateConfig
+  );
   tr.config = {
     javascriptFunctions: {
       upper: function (val) {
@@ -314,7 +335,11 @@ test("JS Class Async Render with a function (sync function, throws error)", asyn
 });
 
 test("JS Class Async Render with a function (async function, throws error)", async (t) => {
-  let tr = new TemplateRender("./test/stubs/function-throws-async.11ty.js");
+  let tr = new TemplateRender(
+    "./test/stubs/function-throws-async.11ty.js",
+    null,
+    templateConfig
+  );
   tr.config = {
     javascriptFunctions: {
       upper: async function (val) {

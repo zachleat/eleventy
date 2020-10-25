@@ -1,13 +1,27 @@
 const test = require("ava");
-const Template = require("../src/Template");
 const TemplateData = require("../src/TemplateData");
+const Template = require("../src/Template");
 const TemplateMap = require("../src/TemplateMap");
-const getNewTemplate = require("./_getNewTemplateForTests");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
+
+const getNewTemplate = (...args) => {
+  // monkey patching to add templateConfig to the end of every call
+  args = args.concat(Array(5).fill(null)).slice(0, 5).concat(templateConfig);
+  return new Template(...args);
+};
 
 test("Computed data can see tag generated collections", async (t) => {
   let tm = new TemplateMap();
 
-  let dataObj = new TemplateData("./test/stubs-computed-collections/");
+  let dataObj = new TemplateData(
+    "./test/stubs-computed-collections/",
+    templateConfig
+  );
   let tmpl = getNewTemplate(
     "./test/stubs-computed-collections/collections.njk",
     "./test/stubs-computed-collections/",
@@ -17,7 +31,10 @@ test("Computed data can see tag generated collections", async (t) => {
 
   await tm.add(tmpl);
 
-  let dataObj2 = new TemplateData("./test/stubs-computed-collections/");
+  let dataObj2 = new TemplateData(
+    "./test/stubs-computed-collections/",
+    templateConfig
+  );
   let tmpl2 = getNewTemplate(
     "./test/stubs-computed-collections/dog.njk",
     "./test/stubs-computed-collections/",
@@ -48,7 +65,10 @@ test("Computed data can see tag generated collections", async (t) => {
 test("Computed data can see paginated data, Issue #1138", async (t) => {
   let tm = new TemplateMap();
 
-  let dataObj = new TemplateData("./test/stubs-computed-pagination/");
+  let dataObj = new TemplateData(
+    "./test/stubs-computed-pagination/",
+    templateConfig
+  );
   let tmpl = getNewTemplate(
     "./test/stubs-computed-pagination/paginated.njk",
     "./test/stubs-computed-pagination/",
@@ -58,7 +78,10 @@ test("Computed data can see paginated data, Issue #1138", async (t) => {
 
   await tm.add(tmpl);
 
-  let dataObj2 = new TemplateData("./test/stubs-computed-pagination/");
+  let dataObj2 = new TemplateData(
+    "./test/stubs-computed-pagination/",
+    templateConfig
+  );
   let tmpl2 = getNewTemplate(
     "./test/stubs-computed-pagination/child.11ty.js",
     "./test/stubs-computed-pagination/",
@@ -101,7 +124,10 @@ test("Computed data can see paginated data, Issue #1138", async (t) => {
 test("Computed data in directory data file consumes data file data, Issue #1137", async (t) => {
   let tm = new TemplateMap();
 
-  let dataObj = new TemplateData("./test/stubs-computed-dirdata/");
+  let dataObj = new TemplateData(
+    "./test/stubs-computed-dirdata/",
+    templateConfig
+  );
   let tmpl = getNewTemplate(
     "./test/stubs-computed-dirdata/dir/first.11ty.js",
     "./test/stubs-computed-dirdata/",
@@ -111,7 +137,10 @@ test("Computed data in directory data file consumes data file data, Issue #1137"
 
   await tm.add(tmpl);
 
-  let dataObj2 = new TemplateData("./test/stubs-computed-dirdata/");
+  let dataObj2 = new TemplateData(
+    "./test/stubs-computed-dirdata/",
+    templateConfig
+  );
   let tmpl2 = getNewTemplate(
     "./test/stubs-computed-dirdata/dir/second.11ty.js",
     "./test/stubs-computed-dirdata/",
@@ -133,7 +162,10 @@ test("Computed data in directory data file consumes data file data, Issue #1137"
 test("Computed data can filter collections (and other array methods)", async (t) => {
   let tm = new TemplateMap();
 
-  let dataObj = new TemplateData("./test/stubs-computed-collections-filter/");
+  let dataObj = new TemplateData(
+    "./test/stubs-computed-collections-filter/",
+    templateConfig
+  );
   let tmpl = getNewTemplate(
     "./test/stubs-computed-collections-filter/collections.njk",
     "./test/stubs-computed-collections-filter/",
@@ -143,7 +175,10 @@ test("Computed data can filter collections (and other array methods)", async (t)
 
   await tm.add(tmpl);
 
-  let dataObj2 = new TemplateData("./test/stubs-computed-collections-filter/");
+  let dataObj2 = new TemplateData(
+    "./test/stubs-computed-collections-filter/",
+    templateConfig
+  );
   let tmpl2 = getNewTemplate(
     "./test/stubs-computed-collections-filter/dog.njk",
     "./test/stubs-computed-collections-filter/",

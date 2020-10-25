@@ -10,7 +10,6 @@ const TemplateRender = require("./TemplateRender");
 const TemplatePath = require("./TemplatePath");
 const EleventyBaseError = require("./EleventyBaseError");
 const EleventyErrorUtil = require("./EleventyErrorUtil");
-const config = require("./Config");
 const debug = require("debug")("Eleventy:TemplateContent");
 const debugDev = require("debug")("Dev:Eleventy:TemplateContent");
 const bench = require("./BenchmarkManager").get("Aggregate");
@@ -20,7 +19,9 @@ class TemplateContentCompileError extends EleventyBaseError {}
 class TemplateContentRenderError extends EleventyBaseError {}
 
 class TemplateContent {
-  constructor(inputPath, inputDir) {
+  constructor(inputPath, inputDir, templateConfig) {
+    this.config = templateConfig.getConfig();
+    this.templateConfig = templateConfig;
     this.inputPath = inputPath;
 
     if (inputDir) {
@@ -33,7 +34,7 @@ class TemplateContent {
   /* Used by tests */
   get extensionMap() {
     if (!this._extensionMap) {
-      this._extensionMap = new EleventyExtensionMap();
+      this._extensionMap = new EleventyExtensionMap([], this.templateConfig);
       this._extensionMap.config = this.config;
     }
     return this._extensionMap;
@@ -48,10 +49,6 @@ class TemplateContent {
   }
 
   get config() {
-    if (!this._config) {
-      this._config = config.getConfig();
-    }
-
     return this._config;
   }
 
@@ -61,7 +58,11 @@ class TemplateContent {
 
   get templateRender() {
     if (!this._templateRender) {
-      this._templateRender = new TemplateRender(this.inputPath, this.inputDir);
+      this._templateRender = new TemplateRender(
+        this.inputPath,
+        this.inputDir,
+        this.templateConfig
+      );
       this._templateRender.extensionMap = this.extensionMap;
     }
 
@@ -112,7 +113,7 @@ class TemplateContent {
       this.frontMatter = {
         data: {},
         content: "",
-        excerpt: ""
+        excerpt: "",
       };
     }
   }
@@ -224,7 +225,7 @@ class TemplateContent {
       let res;
       cache.set(
         key,
-        new Promise(resolve => {
+        new Promise((resolve) => {
           res = resolve;
         })
       );

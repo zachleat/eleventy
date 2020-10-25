@@ -1,8 +1,19 @@
 const test = require("ava");
-const Template = require("../src/Template");
 const TemplateData = require("../src/TemplateData");
 const { cloneDeep } = require("lodash");
-const getNewTemplate = require("./_getNewTemplateForTests");
+const templateConfig = require("../src/Config");
+const Template = require("../src/Template");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
+
+const getNewTemplate = (...args) => {
+  // monkey patching to add templateConfig to the end of every call
+  args = args.concat(Array(5).fill(null)).slice(0, 5).concat(templateConfig);
+  return new Template(...args);
+};
 
 async function getRenderedData(tmpl, pageNumber = 0) {
   let data = await tmpl.getData();
@@ -14,7 +25,10 @@ test("eleventyComputed", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/first.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let data = await getRenderedData(tmpl);
   t.is((await tmpl.render(data)).trim(), "hi:value2-value1.css");
@@ -24,7 +38,10 @@ test("eleventyComputed overrides existing value.", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/override.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let data = await getRenderedData(tmpl);
   t.is(data.key1, "override");
@@ -35,7 +52,10 @@ test("eleventyComputed overrides existing value and reuses that upstream value",
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/override-reuse.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let data = await getRenderedData(tmpl);
   t.is(data.key1, "over(value1)ride");
@@ -46,7 +66,10 @@ test("eleventyComputed permalink", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/permalink.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let templates = await tmpl.getTemplates(await tmpl.getData());
   let data = templates[0].data;
@@ -62,7 +85,10 @@ test("eleventyComputed simple permalink", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/permalink-simple.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let templates = await tmpl.getTemplates(await tmpl.getData());
   let data = templates[0].data;
@@ -75,7 +101,10 @@ test("eleventyComputed permalink using slug", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/permalink-slug.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let templates = await tmpl.getTemplates(await tmpl.getData());
   let data = templates[0].data;
@@ -88,7 +117,10 @@ test("eleventyComputed js front matter (function)", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/second.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let data = await getRenderedData(tmpl);
   t.is(data.key3, "value3-value2-value1.css");
@@ -99,7 +131,10 @@ test("eleventyComputed js front matter key reuses and overrides", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/third.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let data = await getRenderedData(tmpl);
   t.is(data.key1, "value2-value1");
@@ -110,7 +145,10 @@ test("eleventyComputed true primitive", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/true.njk",
     "./test/stubs/",
-    "./dist"
+    "./dist",
+    null,
+    null,
+    templateConfig
   );
   let data = await getRenderedData(tmpl);
   t.is(data.key1, "value1");
@@ -120,12 +158,14 @@ test("eleventyComputed true primitive", async (t) => {
 });
 
 test("eleventyComputed relies on global data", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let dataObj = new TemplateData("./test/stubs/", templateConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/use-global-data.njk",
     "./test/stubs/",
     "./dist",
-    dataObj
+    dataObj,
+    null,
+    templateConfig
   );
 
   let fetchedData = await tmpl.getData();
@@ -135,7 +175,10 @@ test("eleventyComputed relies on global data", async (t) => {
 });
 
 test("eleventyComputed intermixes with global data", async (t) => {
-  let dataObj = new TemplateData("./test/stubs-computed-global/");
+  let dataObj = new TemplateData(
+    "./test/stubs-computed-global/",
+    templateConfig
+  );
 
   let config = cloneDeep(dataObj.config);
   config.dataDeepMerge = true;
@@ -145,7 +188,9 @@ test("eleventyComputed intermixes with global data", async (t) => {
     "./test/stubs-computed-global/intermix.njk",
     "./test/stubs-computed-global/",
     "./dist",
-    dataObj
+    dataObj,
+    null,
+    templateConfig
   );
   tmpl.config = config;
 

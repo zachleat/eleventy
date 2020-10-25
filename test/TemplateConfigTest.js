@@ -3,11 +3,12 @@ const md = require("markdown-it");
 const TemplateConfig = require("../src/TemplateConfig");
 const eleventyConfig = require("../src/EleventyConfig");
 
-test("Template Config local config overrides base config", async (t) => {
+test.serial("Template Config local config overrides base config", async (t) => {
   let templateCfg = new TemplateConfig(
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
 
   t.is(cfg.markdownTemplateEngine, "ejs");
@@ -33,7 +34,7 @@ test("Template Config local config overrides base config", async (t) => {
   );
 });
 
-test("Add liquid tag", (t) => {
+test.serial("Add liquid tag", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addLiquidTag("myTagName", function () {});
 
@@ -41,11 +42,12 @@ test("Add liquid tag", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.liquidTags).indexOf("myTagName"), -1);
 });
 
-test("Add nunjucks tag", (t) => {
+test.serial("Add nunjucks tag", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addNunjucksTag("myNunjucksTag", function () {});
 
@@ -53,11 +55,12 @@ test("Add nunjucks tag", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksTags).indexOf("myNunjucksTag"), -1);
 });
 
-test("Add liquid filter", (t) => {
+test.serial("Add liquid filter", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addLiquidFilter("myFilterName", function (liquidEngine) {
     return {};
@@ -67,11 +70,12 @@ test("Add liquid filter", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.liquidFilters).indexOf("myFilterName"), -1);
 });
 
-test("Add handlebars helper", (t) => {
+test.serial("Add handlebars helper", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addHandlebarsHelper("myHelperName", function () {});
 
@@ -79,11 +83,12 @@ test("Add handlebars helper", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.handlebarsHelpers).indexOf("myHelperName"), -1);
 });
 
-test("Add nunjucks filter", (t) => {
+test.serial("Add nunjucks filter", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addNunjucksFilter("myFilterName", function () {});
 
@@ -91,11 +96,12 @@ test("Add nunjucks filter", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksFilters).indexOf("myFilterName"), -1);
 });
 
-test("Add universal filter", (t) => {
+test.serial("Add universal filter", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addFilter("myFilterName", function () {});
 
@@ -103,12 +109,13 @@ test("Add universal filter", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.liquidFilters).indexOf("myFilterName"), -1);
   t.not(Object.keys(cfg.handlebarsHelpers).indexOf("myFilterName"), -1);
   t.not(Object.keys(cfg.nunjucksFilters).indexOf("myFilterName"), -1);
 });
-test("Add namespaced universal filter", (t) => {
+test.serial("Add namespaced universal filter", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.namespace("testNamespace", function () {
     eleventyConfig.addFilter("MyFilterName", function () {});
@@ -118,6 +125,7 @@ test("Add namespaced universal filter", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(
     Object.keys(cfg.liquidFilters).indexOf("testNamespaceMyFilterName"),
@@ -133,7 +141,7 @@ test("Add namespaced universal filter", (t) => {
   );
 });
 
-test("Add namespaced universal filter using underscore", (t) => {
+test.serial("Add namespaced universal filter using underscore", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.namespace("testNamespace_", function () {
     eleventyConfig.addFilter("myFilterName", function () {});
@@ -143,6 +151,7 @@ test("Add namespaced universal filter using underscore", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(
     Object.keys(cfg.liquidFilters).indexOf("testNamespace_myFilterName"),
@@ -158,7 +167,7 @@ test("Add namespaced universal filter using underscore", (t) => {
   );
 });
 
-test("Empty namespace", (t) => {
+test.serial("Empty namespace", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.namespace("", function () {
     eleventyConfig.addNunjucksFilter("myFilterName", function () {});
@@ -168,11 +177,12 @@ test("Empty namespace", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksFilters).indexOf("myFilterName"), -1);
 });
 
-test("Nested Empty Inner namespace", (t) => {
+test.serial("Nested Empty Inner namespace", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.namespace("testNs", function () {
     eleventyConfig.namespace("", function () {
@@ -184,11 +194,12 @@ test("Nested Empty Inner namespace", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksFilters).indexOf("testNsmyFilterName"), -1);
 });
 
-test("Nested Empty Outer namespace", (t) => {
+test.serial("Nested Empty Outer namespace", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.namespace("", function () {
     eleventyConfig.namespace("testNs", function () {
@@ -200,6 +211,7 @@ test("Nested Empty Outer namespace", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksFilters).indexOf("testNsmyFilterName"), -1);
 });
@@ -207,7 +219,7 @@ test("Nested Empty Outer namespace", (t) => {
 // important for backwards compatibility with old
 // `module.exports = function (eleventyConfig, pluginNamespace) {`
 // plugin code
-test("Non-string namespaces are ignored", (t) => {
+test.serial("Non-string namespaces are ignored", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.namespace(["lkdsjflksd"], function () {
     eleventyConfig.addNunjucksFilter("myFilterName", function () {});
@@ -217,37 +229,46 @@ test("Non-string namespaces are ignored", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksFilters).indexOf("myFilterName"), -1);
 });
 
-test(".addPlugin oddity: I don’t think pluginNamespace was ever passed in here, but we don’t want this to break", (t) => {
-  eleventyConfig.reset();
-  eleventyConfig.addPlugin(function (eleventyConfig, pluginNamespace) {
-    eleventyConfig.namespace(pluginNamespace, () => {
-      eleventyConfig.addNunjucksFilter("myFilterName", function () {});
+test.serial(
+  ".addPlugin oddity: I don’t think pluginNamespace was ever passed in here, but we don’t want this to break",
+  async (t) => {
+    eleventyConfig.reset();
+    eleventyConfig.addPlugin(function (eleventyConfig, pluginNamespace) {
+      eleventyConfig.namespace(pluginNamespace, () => {
+        eleventyConfig.addNunjucksFilter("myFilterName", function () {});
+      });
     });
-  });
 
-  let templateCfg = new TemplateConfig(
-    require("../src/defaultConfig.js"),
-    "./test/stubs/config.js"
-  );
-  let cfg = templateCfg.getConfig();
-  t.not(Object.keys(cfg.nunjucksFilters).indexOf("myFilterName"), -1);
-});
+    let templateCfg = new TemplateConfig(
+      require("../src/defaultConfig.js"),
+      "./test/stubs/config.js"
+    );
+    await templateCfg.init();
+    let cfg = templateCfg.getConfig();
+    t.not(Object.keys(cfg.nunjucksFilters).indexOf("myFilterName"), -1);
+  }
+);
 
-test("Test url universal filter with custom pathPrefix (no slash)", (t) => {
-  let templateCfg = new TemplateConfig(
-    require("../src/defaultConfig.js"),
-    "./test/stubs/config.js"
-  );
-  templateCfg.setPathPrefix("/testdirectory/");
-  let cfg = templateCfg.getConfig();
-  t.is(cfg.pathPrefix, "/testdirectory/");
-});
+test.serial(
+  "Test url universal filter with custom pathPrefix (no slash)",
+  async (t) => {
+    let templateCfg = new TemplateConfig(
+      require("../src/defaultConfig.js"),
+      "./test/stubs/config.js"
+    );
+    await templateCfg.init();
+    templateCfg.setPathPrefix("/testdirectory/");
+    let cfg = templateCfg.getConfig();
+    t.is(cfg.pathPrefix, "/testdirectory/");
+  }
+);
 
-test("setTemplateFormats(string)", (t) => {
+test.serial("setTemplateFormats(string)", async (t) => {
   eleventyConfig.reset();
   // 0.11.0 removes dupes
   eleventyConfig.setTemplateFormats("ejs,njk, liquid, njk");
@@ -256,11 +277,12 @@ test("setTemplateFormats(string)", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.templateFormats, ["ejs", "njk", "liquid"]);
 });
 
-test("setTemplateFormats(array)", (t) => {
+test.serial("setTemplateFormats(array)", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.setTemplateFormats(["ejs", "njk", "liquid"]);
 
@@ -268,11 +290,12 @@ test("setTemplateFormats(array)", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.templateFormats, ["ejs", "njk", "liquid"]);
 });
 
-test("setTemplateFormats(array, size 1)", (t) => {
+test.serial("setTemplateFormats(array, size 1)", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.setTemplateFormats(["liquid"]);
 
@@ -280,11 +303,12 @@ test("setTemplateFormats(array, size 1)", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.templateFormats, ["liquid"]);
 });
 
-test("setTemplateFormats(empty array)", (t) => {
+test.serial("setTemplateFormats(empty array)", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.setTemplateFormats([]);
 
@@ -292,11 +316,12 @@ test("setTemplateFormats(empty array)", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.templateFormats, []);
 });
 
-test("setTemplateFormats(null)", (t) => {
+test.serial("setTemplateFormats(null)", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.setTemplateFormats(null);
 
@@ -304,11 +329,12 @@ test("setTemplateFormats(null)", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.true(cfg.templateFormats.length > 0);
 });
 
-test("multiple setTemplateFormats calls", (t) => {
+test.serial("multiple setTemplateFormats calls", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.setTemplateFormats("njk");
   eleventyConfig.setTemplateFormats("pug");
@@ -317,11 +343,13 @@ test("multiple setTemplateFormats calls", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.templateFormats, ["pug"]);
 });
 
-test("addTemplateFormats()", (t) => {
+test.serial("addTemplateFormats()", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addTemplateFormats("vue");
 
@@ -329,12 +357,13 @@ test("addTemplateFormats()", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   // should have ALL of the original defaults
   t.deepEqual(cfg.templateFormats, ["md", "njk", "vue"]);
 });
 
-test("both setTemplateFormats and addTemplateFormats", (t) => {
+test.serial("both setTemplateFormats and addTemplateFormats", async (t) => {
   // Template Formats can come from three places
   // defaultConfig.js config API (not used yet)
   // defaultConfig.js config return object
@@ -349,11 +378,12 @@ test("both setTemplateFormats and addTemplateFormats", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.templateFormats, ["pug", "vue"]);
 });
 
-test("libraryOverrides", (t) => {
+test.serial("libraryOverrides", async (t) => {
   let mdLib = md();
   eleventyConfig.setLibrary("md", mdLib);
 
@@ -361,6 +391,8 @@ test("libraryOverrides", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.falsy(cfg.libraryOverrides.ldkja);
   t.falsy(cfg.libraryOverrides.njk);
@@ -368,7 +400,7 @@ test("libraryOverrides", (t) => {
   t.deepEqual(mdLib, cfg.libraryOverrides.md);
 });
 
-test("addGlobalData", (t) => {
+test.serial("addGlobalData", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addGlobalData("function", () => new Date());
 
@@ -376,29 +408,32 @@ test("addGlobalData", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.globalData).indexOf("function"), -1);
 });
 
-test("Properly throws error on missing module #182", (t) => {
-  t.throws(function () {
-    new TemplateConfig(
+test("Properly throws error on missing module #182", async (t) => {
+  await t.throwsAsync(async () => {
+    const cfg = new TemplateConfig(
       require("../src/defaultConfig.js"),
       "./test/stubs/broken-config.js"
     );
+    return await cfg.init();
   });
 });
 
-test("Properly throws error when config returns a Promise", (t) => {
-  t.throws(function () {
+test("Properly throws error when config returns a Promise", async (t) => {
+  await t.throwsAsync(async () => {
     new TemplateConfig(
       require("../src/defaultConfig.js"),
       "./test/stubs/config-promise.js"
     );
+    return await cfg.init();
   });
 });
 
-test(".addWatchTarget adds a watch target", (t) => {
+test.serial(".addWatchTarget adds a watch target", async (t) => {
   eleventyConfig.reset();
   eleventyConfig.addWatchTarget("/testdirectory/");
 
@@ -406,6 +441,7 @@ test(".addWatchTarget adds a watch target", (t) => {
     require("../src/defaultConfig.js"),
     "./test/stubs/config.js"
   );
+  await templateCfg.init();
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.additionalWatchTargets, ["/testdirectory/"]);
 });

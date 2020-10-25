@@ -1,23 +1,32 @@
 const test = require("ava");
 const TemplateLayout = require("../src/TemplateLayout");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 function getTemplateLayoutInstance(key, inputDir, map) {
   if (!map) {
-    map = new EleventyExtensionMap([
-      "liquid",
-      "ejs",
-      "md",
-      "hbs",
-      "mustache",
-      "haml",
-      "pug",
-      "njk",
-      "html",
-      "11ty.js",
-    ]);
+    map = new EleventyExtensionMap(
+      [
+        "liquid",
+        "ejs",
+        "md",
+        "hbs",
+        "mustache",
+        "haml",
+        "pug",
+        "njk",
+        "html",
+        "11ty.js",
+      ],
+      templateConfig
+    );
   }
-  let layout = new TemplateLayout(key, inputDir, map);
+  let layout = new TemplateLayout(key, inputDir, map, templateConfig);
   return layout;
 }
 

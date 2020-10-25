@@ -6,15 +6,14 @@ const TemplateData = require("./TemplateData");
 const TemplateGlob = require("./TemplateGlob");
 const TemplatePath = require("./TemplatePath");
 const TemplatePassthroughManager = require("./TemplatePassthroughManager");
-
-const config = require("./Config");
 const debug = require("debug")("Eleventy:EleventyFiles");
 // const debugDev = require("debug")("Dev:Eleventy:EleventyFiles");
 const aggregateBench = require("./BenchmarkManager").get("Aggregate");
 
 class EleventyFiles {
-  constructor(input, outputDir, formats, passthroughAll) {
-    this.config = config.getConfig();
+  constructor(input, outputDir, formats, passthroughAll, templateConfig) {
+    this.config = templateConfig.getConfig();
+    this.templateConfig = templateConfig;
     this.input = input;
     this.inputDir = TemplatePath.getDir(this.input);
     this.outputDir = outputDir;
@@ -100,7 +99,10 @@ class EleventyFiles {
   get extensionMap() {
     // for tests
     if (!this._extensionMap) {
-      this._extensionMap = new EleventyExtensionMap(this.formats);
+      this._extensionMap = new EleventyExtensionMap(
+        this.formats,
+        this.templateConfig
+      );
       this._extensionMap.config = this.config;
     }
     return this._extensionMap;
@@ -111,7 +113,7 @@ class EleventyFiles {
   }
 
   initPassthroughManager() {
-    let mgr = new TemplatePassthroughManager();
+    let mgr = new TemplatePassthroughManager(this.templateConfig);
     mgr.setInputDir(this.inputDir);
     mgr.setOutputDir(this.outputDir);
     mgr.extensionMap = this.extensionMap;
@@ -134,7 +136,7 @@ class EleventyFiles {
   // TODO make this a getter
   getTemplateData() {
     if (!this.templateData) {
-      this.templateData = new TemplateData(this.inputDir);
+      this.templateData = new TemplateData(this.inputDir, this.templateConfig);
     }
     return this.templateData;
   }

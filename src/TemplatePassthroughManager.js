@@ -1,4 +1,3 @@
-const config = require("./Config");
 const EleventyExtensionMap = require("./EleventyExtensionMap");
 const EleventyBaseError = require("./EleventyBaseError");
 const TemplatePassthrough = require("./TemplatePassthrough");
@@ -8,8 +7,9 @@ const debug = require("debug")("Eleventy:TemplatePassthroughManager");
 class TemplatePassthroughManagerCopyError extends EleventyBaseError {}
 
 class TemplatePassthroughManager {
-  constructor() {
-    this.config = config.getConfig();
+  constructor(templateConfig) {
+    this.config = templateConfig.getConfig();
+    this.templateConfig = templateConfig;
     this.reset();
   }
 
@@ -29,7 +29,7 @@ class TemplatePassthroughManager {
 
   get extensionMap() {
     if (!this._extensionMap) {
-      this._extensionMap = new EleventyExtensionMap();
+      this._extensionMap = new EleventyExtensionMap([], this.templateConfig);
       this._extensionMap.config = this.config;
     }
     return this._extensionMap;

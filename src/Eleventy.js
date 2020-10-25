@@ -31,20 +31,11 @@ const debug = require("debug")("Eleventy");
  */
 class Eleventy {
   constructor(input, output) {
-    /** @member {Object} - tbd. */
-    this.config = config.getConfig();
-
     /**
      * @member {String} - The path to Eleventy's config file.
      * @default null
      */
     this.configPath = null;
-
-    /**
-     * @member {Boolean} - Is Eleventy running in verbose mode?
-     * @default true
-     */
-    this.isVerbose = process.env.DEBUG ? false : !this.config.quietMode;
 
     /**
      * @member {Boolean} - Was verbose mode overridden manually?
@@ -64,6 +55,7 @@ class Eleventy {
      */
     this.isDryRun = false;
 
+    //TODO:  does this belong here still? Move into init?
     if (performance) {
       debug("Eleventy warm up time (in ms) %o", performance.now());
     }
@@ -77,9 +69,6 @@ class Eleventy {
      */
     this.formatsOverride = null;
 
-    /** @member {Object} - tbd. */
-    this.eleventyServe = new EleventyServe();
-
     /** @member {String} - Holds the path to the input directory. */
     this.rawInput = input;
 
@@ -91,8 +80,9 @@ class Eleventy {
 
     /** @member {Object} - tbd. */
     this.watchTargets = new EleventyWatchTargets();
-    this.watchTargets.addAndMakeGlob(this.config.additionalWatchTargets);
-    this.watchTargets.watchJavaScriptDependencies = this.config.watchJavaScriptDependencies;
+
+    /** @member {Object} - tbd. */
+    this.eleventyServe = new EleventyServe();
   }
 
   getNewTimestamp() {
@@ -183,11 +173,11 @@ class Eleventy {
    * @method
    * @param {String} configPath - The new config path.
    */
-  setConfigPathOverride(configPath) {
+  async setConfigPathOverride(configPath) {
     if (configPath) {
       this.configPath = configPath;
 
-      config.setProjectConfigPath(configPath);
+      await config.setProjectConfigPath(configPath);
       this.config = config.getConfig();
     }
   }
@@ -289,30 +279,49 @@ class Eleventy {
    * @returns {} - tbd.
    */
   async init() {
+    if (!this.config) {
+      await config.init();
+    }
+    /** @member {Object} - tbd. */
+    this.config = config.getConfig();
+    /**
+     * @member {Boolean} - Is Eleventy running in verbose mode?
+     * @default true
+     */
+    this.isVerbose = process.env.DEBUG ? false : !this.config.quietMode;
+
+    this.watchTargets.addAndMakeGlob(this.config.additionalWatchTargets);
+    this.watchTargets.watchJavaScriptDependencies = this.config.watchJavaScriptDependencies;
+
+    /** @member {Object} - tbd. */
+    this.eleventyServe.config = config;
+
     this.config.inputDir = this.inputDir;
 
     let formats = this.formatsOverride || this.config.templateFormats;
-    this.extensionMap = new EleventyExtensionMap(formats);
+    this.extensionMap = new EleventyExtensionMap(formats, config);
 
     this.eleventyFiles = new EleventyFiles(
       this.input,
       this.outputDir,
       formats,
-      this.isPassthroughAll
+      this.isPassthroughAll,
+      config
     );
     this.eleventyFiles.extensionMap = this.extensionMap;
-    this.eleventyFiles.init();
 
-    this.templateData = new TemplateData(this.inputDir);
+    this.templateData = new TemplateData(this.inputDir, config);
     this.templateData.extensionMap = this.extensionMap;
     this.eleventyFiles.setTemplateData(this.templateData);
+    this.eleventyFiles.init();
 
     this.writer = new TemplateWriter(
       this.input,
       this.outputDir,
       formats,
       this.templateData,
-      this.isPassthroughAll
+      this.isPassthroughAll,
+      config
     );
 
     this.writer.extensionMap = this.extensionMap;
@@ -425,8 +434,8 @@ Arguments:
    *
    * @method
    */
-  resetConfig() {
-    config.reset();
+  async resetConfig() {
+    await config.reset();
 
     this.config = config.getConfig();
     this.eleventyServe.config = this.config;
@@ -465,7 +474,7 @@ Arguments:
 
     // reset and reload global configuration :O
     if (this.watchManager.hasQueuedFile(config.getLocalProjectConfigFile())) {
-      this.resetConfig();
+      await this.resetConfig();
     }
 
     await this.restart();

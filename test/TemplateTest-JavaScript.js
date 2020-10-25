@@ -1,9 +1,21 @@
 const test = require("ava");
 const Template = require("../src/Template");
 const semver = require("semver");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
+
+const getNewTemplate = (...args) => {
+  // monkey patching to add templateConfig to the end of every call
+  args = args.concat(Array(5).fill(null)).slice(0, 5).concat(templateConfig);
+  return new Template(...args);
+};
 
 test("JavaScript template type (function)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/function.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -18,7 +30,7 @@ test("JavaScript template type (function)", async (t) => {
 });
 
 test("JavaScript template type (class with data getter)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -32,7 +44,7 @@ test("JavaScript template type (class with data getter)", async (t) => {
 });
 
 test("JavaScript template type (class with data method)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-fn.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -47,7 +59,7 @@ test("JavaScript template type (class with data method)", async (t) => {
 
 if (semver.gte(process.version, "12.4.0")) {
   test("JavaScript template type (class fields)", async (t) => {
-    let tmpl = new Template(
+    let tmpl = getNewTemplate(
       "./test/stubs/classfields-data.11ty.js",
       "./test/stubs/",
       "./dist"
@@ -62,7 +74,7 @@ if (semver.gte(process.version, "12.4.0")) {
 }
 
 test("JavaScript template type (class with shorthand data method)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-fn-shorthand.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -76,7 +88,7 @@ test("JavaScript template type (class with shorthand data method)", async (t) =>
 });
 
 test("JavaScript template type (class with async data method)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-async-data-fn.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -90,7 +102,7 @@ test("JavaScript template type (class with async data method)", async (t) => {
 });
 
 test("JavaScript template type (class with data getter and a javascriptFunction)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-filter.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -110,7 +122,7 @@ test("JavaScript template type (class with data getter and a javascriptFunction)
 });
 
 test("JavaScript template type (class with data method and a javascriptFunction)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-fn-filter.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -130,7 +142,7 @@ test("JavaScript template type (class with data method and a javascriptFunction)
 });
 
 test("JavaScript template type (class with data permalink)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-permalink.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -140,7 +152,7 @@ test("JavaScript template type (class with data permalink)", async (t) => {
 });
 
 test("JavaScript template type (class with data permalink using a buffer)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-permalink-buffer.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -150,7 +162,7 @@ test("JavaScript template type (class with data permalink using a buffer)", asyn
 });
 
 test("JavaScript template type (class with data permalink function)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-permalink-fn.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -160,7 +172,7 @@ test("JavaScript template type (class with data permalink function)", async (t) 
 });
 
 test("JavaScript template type (class with data permalink function using a buffer)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-permalink-fn-buffer.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -170,7 +182,7 @@ test("JavaScript template type (class with data permalink function using a buffe
 });
 
 test("JavaScript template type (class with data permalink async function)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-permalink-async-fn.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -180,7 +192,7 @@ test("JavaScript template type (class with data permalink async function)", asyn
 });
 
 test("JavaScript template type (class with data permalink function using a filter)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-permalink-fn-filter.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -193,7 +205,7 @@ test("JavaScript template type (class with data permalink function using a filte
 });
 
 test("JavaScript template type (class with renderData)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-data-renderdata.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -208,7 +220,7 @@ test("JavaScript template type (class with renderData)", async (t) => {
 });
 
 test("JavaScript template type (should use the same class instance for data and render)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/oneinstance.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -223,7 +235,7 @@ test("JavaScript template type (should use the same class instance for data and 
 });
 
 test("JavaScript template type (multiple exports)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/multipleexports.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -235,7 +247,7 @@ test("JavaScript template type (multiple exports)", async (t) => {
 });
 
 test("JavaScript template type (multiple exports, promises)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/multipleexports-promises.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -249,7 +261,7 @@ test("JavaScript template type (multiple exports, promises)", async (t) => {
 });
 
 test("JavaScript template type (object)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/object.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -263,7 +275,7 @@ test("JavaScript template type (object)", async (t) => {
 });
 
 test("JavaScript template type (object, no render method)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/object-norender.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -277,7 +289,7 @@ test("JavaScript template type (object, no render method)", async (t) => {
 });
 
 test("JavaScript template type (class, no render method)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/class-norender.11ty.js",
     "./test/stubs/",
     "./dist"
@@ -290,7 +302,7 @@ test("JavaScript template type (class, no render method)", async (t) => {
   t.is(pages[0].templateContent.trim(), "");
 });
 test("JavaScript template type (data returns a string)", async (t) => {
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/exports-flatdata.11ty.js",
     "./test/stubs/",
     "./dist"

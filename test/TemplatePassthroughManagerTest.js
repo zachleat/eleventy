@@ -1,9 +1,15 @@
 const test = require("ava");
 const fs = require("fs-extra");
 const TemplatePassthroughManager = require("../src/TemplatePassthroughManager");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 test("Get paths from Config", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
     passthroughCopies: {
@@ -15,7 +21,7 @@ test("Get paths from Config", async (t) => {
 });
 
 test("isPassthroughCopyFile", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
     passthroughCopies: {
@@ -37,7 +43,7 @@ test("isPassthroughCopyFile", async (t) => {
 });
 
 test("Empty config paths when disabled in config", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: false,
     passthroughCopies: {
@@ -49,7 +55,7 @@ test("Empty config paths when disabled in config", async (t) => {
 });
 
 test("Get glob paths from config", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
     passthroughCopies: {
@@ -67,7 +73,7 @@ test("Get glob paths from config", async (t) => {
 });
 
 test("Get file paths", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
   });
@@ -76,7 +82,7 @@ test("Get file paths", async (t) => {
 });
 
 test("Get file paths (filter out real templates)", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
   });
@@ -85,7 +91,7 @@ test("Get file paths (filter out real templates)", async (t) => {
 });
 
 test("Get file paths (filter out real templates), multiple", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
   });
@@ -94,7 +100,7 @@ test("Get file paths (filter out real templates), multiple", async (t) => {
 });
 
 test("Get file paths with a js file (filter out real templates), multiple", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
   });
@@ -103,7 +109,7 @@ test("Get file paths with a js file (filter out real templates), multiple", asyn
 });
 
 test("Get file paths when disabled in config", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: false,
   });
@@ -112,7 +118,7 @@ test("Get file paths when disabled in config", async (t) => {
 });
 
 test("Naughty paths outside of project dir", async (t) => {
-  let mgr = new TemplatePassthroughManager();
+  let mgr = new TemplatePassthroughManager(templateConfig);
   mgr.setConfig({
     passthroughFileCopy: true,
     passthroughCopies: {

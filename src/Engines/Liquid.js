@@ -5,8 +5,8 @@ const TemplatePath = require("../TemplatePath");
 // const debug = require("debug")("Eleventy:Liquid");
 
 class Liquid extends TemplateEngine {
-  constructor(name, includesDir) {
-    super(name, includesDir);
+  constructor(name, includesDir, templateConfig) {
+    super(name, includesDir, templateConfig);
 
     this.liquidOptions = {};
 

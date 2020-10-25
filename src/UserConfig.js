@@ -21,6 +21,7 @@ class UserConfig {
     this.events = new EventEmitter();
     this.collections = {};
     this.templateFormats = undefined;
+    this.templateFormatsAdded = [];
 
     this.liquidOptions = {};
     this.liquidTags = {};
@@ -60,6 +61,7 @@ class UserConfig {
     this.globalData = {};
     this.chokidarConfig = {};
     this.watchThrottleWaitTime = 0; //ms
+    this.plugins = [];
 
     // using Map to preserve insertion order
     this.dataExtensions = new Map();
@@ -273,26 +275,33 @@ class UserConfig {
   }
 
   addPlugin(plugin, options) {
-    // TODO support function.name in plugin config functions
-    debug("Adding plugin (unknown name: check your config file).");
-    let pluginBench = aggregateBench.get("Configuration addPlugin");
-    if (typeof plugin === "function") {
-      pluginBench.before();
-      let configFunction = plugin;
-      configFunction(this, options);
-      pluginBench.after();
-    } else if (plugin && plugin.configFunction) {
-      pluginBench.before();
-      if (options && typeof options.init === "function") {
-        options.init.call(this, plugin.initArguments || {});
-      }
+    this.plugins.push({ plugin, options });
+  }
 
-      plugin.configFunction(this, options);
-      pluginBench.after();
-    } else {
-      throw new UserConfigError(
-        "Invalid EleventyConfig.addPlugin signature. Should be a function or a valid Eleventy plugin object."
-      );
+  async applyPlugins(templateConfig) {
+    for (let index = 0; index < this.plugins.length; index++) {
+      const { plugin, options } = this.plugins[index];
+      // TODO support function.name in plugin config functions
+      debug("Adding plugin (unknown name: check your config file).");
+      let pluginBench = aggregateBench.get("Configuration addPlugin");
+      if (typeof plugin === "function") {
+        pluginBench.before();
+        let configFunction = plugin;
+        await configFunction(this, options, templateConfig);
+        pluginBench.after();
+      } else if (plugin && plugin.configFunction) {
+        pluginBench.before();
+        if (options && typeof options.init === "function") {
+          options.init.call(this, plugin.initArguments || {}, templateConfig);
+        }
+
+        await plugin.configFunction(this, options, templateConfig);
+        pluginBench.after();
+      } else {
+        throw new UserConfigError(
+          "Invalid EleventyConfig.addPlugin signature. Should be a function or a valid Eleventy plugin object."
+        );
+      }
     }
   }
 
@@ -350,6 +359,7 @@ class UserConfig {
     if (!this.templateFormatsAdded) {
       this.templateFormatsAdded = [];
     }
+
     this.templateFormatsAdded = this.templateFormatsAdded.concat(
       this._normalizeTemplateFormats(templateFormats)
     );

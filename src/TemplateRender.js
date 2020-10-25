@@ -7,12 +7,15 @@ class TemplateRenderUnknownEngineError extends EleventyBaseError {}
 
 // works with full path names or short engine name
 class TemplateRender {
-  constructor(tmplPath, inputDir) {
+  constructor(tmplPath, inputDir, templateConfig) {
     if (!tmplPath) {
       throw new Error(
         `TemplateRender requires a tmplPath argument, instead of ${tmplPath}`
       );
     }
+
+    this._config = templateConfig.getConfig();
+    this.templateConfig = templateConfig;
 
     this.engineNameOrPath = tmplPath;
     this.inputDir = inputDir;
@@ -20,14 +23,11 @@ class TemplateRender {
     // optional
     this.includesDir = this._normalizeIncludesDir(inputDir);
 
-    this.parseMarkdownWith = this.config.markdownTemplateEngine;
-    this.parseHtmlWith = this.config.htmlTemplateEngine;
+    this.parseMarkdownWith = this._config.markdownTemplateEngine;
+    this.parseHtmlWith = this._config.htmlTemplateEngine;
   }
 
   get config() {
-    if (!this._config) {
-      this._config = require("./Config").getConfig();
-    }
     return this._config;
   }
 
@@ -41,14 +41,14 @@ class TemplateRender {
 
   get extensionMap() {
     if (!this._extensionMap) {
-      this._extensionMap = new EleventyExtensionMap();
+      this._extensionMap = new EleventyExtensionMap([], this.templateConfig);
     }
     return this._extensionMap;
   }
 
   // Runs once per template
   init(engineNameOrPath) {
-    this.extensionMap.config = this.config;
+    this.extensionMap.config = this._config;
     this._engineName = this.extensionMap.getKey(engineNameOrPath);
     if (!this._engineName) {
       throw new TemplateRenderUnknownEngineError(
@@ -61,7 +61,7 @@ class TemplateRender {
       this.includesDir,
       this.extensionMap
     );
-    this._engine.config = this.config;
+    this._engine.config = this._config;
     this._engine.initRequireCache(engineNameOrPath);
 
     if (this.useMarkdown === undefined) {
@@ -169,8 +169,8 @@ class TemplateRender {
 
   _normalizeIncludesDir(dir) {
     return TemplatePath.join(
-      dir ? dir : this.config.dir.input,
-      this.config.dir.includes
+      dir ? dir : this._config.dir.input,
+      this._config.dir.includes
     );
   }
 

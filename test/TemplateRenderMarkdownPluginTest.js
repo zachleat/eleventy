@@ -1,6 +1,12 @@
 const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const md = require("markdown-it");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 const createTestMarkdownPlugin = () => {
   const plugin = (md) => {
@@ -16,7 +22,7 @@ const createTestMarkdownPlugin = () => {
 };
 
 test("Markdown Render: with HTML prerender, sends context data to the markdown library", async (t) => {
-  let tr = new TemplateRender("md");
+  let tr = new TemplateRender("md", null, templateConfig);
 
   const plugin = createTestMarkdownPlugin();
   let mdLib = md().use(plugin);
@@ -31,7 +37,7 @@ test("Markdown Render: with HTML prerender, sends context data to the markdown l
 });
 
 test("Markdown Render: without HTML prerender, sends context data to the markdown library", async (t) => {
-  let tr = new TemplateRender("md");
+  let tr = new TemplateRender("md", null, templateConfig);
 
   const plugin = createTestMarkdownPlugin();
   let mdLib = md().use(plugin);

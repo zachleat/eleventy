@@ -1,6 +1,12 @@
 const test = require("ava");
 const TemplateData = require("../src/TemplateData");
 let yaml = require("js-yaml");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 function injectDataExtensions(dataObj) {
   dataObj.config.dataExtensions = new Map([
@@ -10,7 +16,7 @@ function injectDataExtensions(dataObj) {
 }
 
 test("Local data", async (t) => {
-  let dataObj = new TemplateData("./test/stubs-630/");
+  let dataObj = new TemplateData("./test/stubs-630/", templateConfig);
   injectDataExtensions(dataObj);
   dataObj.setDataTemplateEngine("liquid");
 
@@ -39,7 +45,7 @@ test("Local data", async (t) => {
 });
 
 test("Local files", async (t) => {
-  let dataObj = new TemplateData("./test/stubs-630/");
+  let dataObj = new TemplateData("./test/stubs-630/", templateConfig);
   injectDataExtensions(dataObj);
   let files = await dataObj.getLocalDataPaths(
     "./test/stubs-630/component-yaml/component.njk"
@@ -73,7 +79,7 @@ test("Local files", async (t) => {
 });
 
 test("Global data", async (t) => {
-  let dataObj = new TemplateData("./test/stubs-630/");
+  let dataObj = new TemplateData("./test/stubs-630/", templateConfig);
   injectDataExtensions(dataObj);
   dataObj.setDataTemplateEngine("liquid");
 
@@ -105,7 +111,7 @@ test("Global data", async (t) => {
 });
 
 test("Global data merging and priority", async (t) => {
-  let dataObj = new TemplateData("./test/stubs-630/");
+  let dataObj = new TemplateData("./test/stubs-630/", templateConfig);
   injectDataExtensions(dataObj);
 
   let data = await dataObj.getData();

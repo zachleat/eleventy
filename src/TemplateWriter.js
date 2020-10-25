@@ -7,7 +7,6 @@ const EleventyBaseError = require("./EleventyBaseError");
 const EleventyErrorHandler = require("./EleventyErrorHandler");
 const EleventyErrorUtil = require("./EleventyErrorUtil");
 
-const config = require("./Config");
 const debug = require("debug")("Eleventy:TemplateWriter");
 const debugDev = require("debug")("Dev:Eleventy:TemplateWriter");
 
@@ -19,9 +18,11 @@ class TemplateWriter {
     outputDir,
     templateFormats, // TODO remove this, see `get eleventyFiles` first
     templateData,
-    isPassthroughAll
+    isPassthroughAll,
+    templateConfig
   ) {
-    this.config = config.getConfig();
+    this.config = templateConfig.getConfig();
+    this.templateConfig = templateConfig;
     this.input = inputPath;
     this.inputDir = TemplatePath.getDir(inputPath);
     this.outputDir = outputDir;
@@ -39,6 +40,15 @@ class TemplateWriter {
     this.passthroughAll = isPassthroughAll;
 
     this._templatePathCache = new Map();
+
+    this._eleventyFiles = new EleventyFiles(
+      this.input,
+      this.outputDir,
+      this.templateFormats,
+      this.passthroughAll,
+      this.templateConfig
+    );
+    this._eleventyFiles.init();
   }
 
   get templateFormats() {
@@ -70,7 +80,10 @@ class TemplateWriter {
 
   get extensionMap() {
     if (!this._extensionMap) {
-      this._extensionMap = new EleventyExtensionMap(this.templateFormats);
+      this._extensionMap = new EleventyExtensionMap(
+        this.templateFormats,
+        this.templateConfig
+      );
       this._extensionMap.config = this.config;
     }
     return this._extensionMap;
@@ -85,19 +98,6 @@ class TemplateWriter {
   }
 
   get eleventyFiles() {
-    // usually Eleventy.js will setEleventyFiles with the EleventyFiles manager
-    if (!this._eleventyFiles) {
-      // if not, we can create one (used only by tests)
-      this._eleventyFiles = new EleventyFiles(
-        this.input,
-        this.outputDir,
-        this.templateFormats,
-        this.passthroughAll
-      );
-
-      this._eleventyFiles.init();
-    }
-
     return this._eleventyFiles;
   }
 
@@ -120,7 +120,8 @@ class TemplateWriter {
       this.inputDir,
       this.outputDir,
       this.templateData,
-      this.extensionMap
+      this.extensionMap,
+      this.templateConfig
     );
     this._templatePathCache.set(path, tmpl);
 
@@ -276,7 +277,6 @@ class TemplateWriter {
 
   setDryRun(isDryRun) {
     this.isDryRun = !!isDryRun;
-
     this.eleventyFiles.getPassthroughManager().setDryRun(this.isDryRun);
   }
 

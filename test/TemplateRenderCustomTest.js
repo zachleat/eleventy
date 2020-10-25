@@ -1,20 +1,27 @@
 const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
-const templateConfig = require("../src/Config");
 const Vue = require("vue");
 const renderer = require("vue-server-renderer").createRenderer();
+const templateConfig = require("../src/Config");
+
+let config = {};
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+  config = templateConfig.getConfig();
+});
 
 function getNewTemplateRender(name, inputDir) {
-  let tr = new TemplateRender(name, inputDir);
-  tr.extensionMap = new EleventyExtensionMap();
+  let tr = new TemplateRender(name, inputDir, templateConfig);
+  tr.extensionMap = new EleventyExtensionMap([], templateConfig);
   return tr;
 }
 
 test("Custom plaintext Render", async (t) => {
   let tr = getNewTemplateRender("txt");
 
-  const config = templateConfig.getConfig();
   tr.config = Object.assign({}, config);
   tr.config.extensionMap.add({
     extension: "txt",
@@ -35,7 +42,6 @@ test("Custom plaintext Render", async (t) => {
 test("Custom Vue Render", async (t) => {
   let tr = getNewTemplateRender("vue");
 
-  const config = templateConfig.getConfig();
   tr.config = Object.assign({}, config);
   tr.config.extensionMap.add({
     extension: "vue",
@@ -60,7 +66,6 @@ test("Custom Sass Render", async (t) => {
   const sass = require("node-sass");
   let tr = getNewTemplateRender("sass");
 
-  const config = templateConfig.getConfig();
   tr.config = Object.assign({}, config);
   tr.config.extensionMap.add({
     extension: "sass",

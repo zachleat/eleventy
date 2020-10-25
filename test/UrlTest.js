@@ -1,9 +1,19 @@
 const test = require("ava");
-const url = require("../src/Filters/Url.js");
+const getURLFilter = require("../src/Filters/Url.js");
+const templateConfig = require("../src/Config");
+
+let config = {},
+  url;
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+  config = templateConfig.getConfig();
+  url = getURLFilter(templateConfig);
+});
 
 test("Test url filter without passing in pathPrefix", (t) => {
-  let projectConfig = require("../src/Config").getConfig();
-  t.is(projectConfig.pathPrefix, "/");
+  t.is(config.pathPrefix, "/");
 
   t.is(url("test"), "test");
   t.is(url("/test"), "/test");

@@ -2,8 +2,8 @@ const ejsLib = require("ejs");
 const TemplateEngine = require("./TemplateEngine");
 
 class Ejs extends TemplateEngine {
-  constructor(name, includesDir) {
-    super(name, includesDir);
+  constructor(name, includesDir, templateConfig) {
+    super(name, includesDir, templateConfig);
 
     this.ejsOptions = {};
 
@@ -31,7 +31,7 @@ class Ejs extends TemplateEngine {
       {
         root: "./" + includesDir,
         compileDebug: true,
-        filename: "./" + includesDir
+        filename: "./" + includesDir,
       },
       this.ejsOptions || {}
     );
@@ -46,7 +46,7 @@ class Ejs extends TemplateEngine {
 
     let fn = this.ejsLib.compile(str, options);
 
-    return function(data) {
+    return function (data) {
       return fn(data);
     };
   }

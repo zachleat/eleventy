@@ -3,42 +3,70 @@ const multimatch = require("multimatch");
 const Template = require("../src/Template");
 const Collection = require("../src/TemplateCollection");
 const Sortable = require("../src/Util/Sortable");
+const templateConfig = require("../src/Config");
 
-let tmpl1 = new Template(
-  "./test/stubs/collection/test1.md",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
-let tmpl2 = new Template(
-  "./test/stubs/collection/test2.md",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
-let tmpl3 = new Template(
-  "./test/stubs/collection/test3.md",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
-let tmpl4 = new Template(
-  "./test/stubs/collection/test4.md",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
-let tmpl5 = new Template(
-  "./test/stubs/collection/test5.md",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
-let tmpl6 = new Template(
-  "./test/stubs/collection/test6.html",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
-let tmpl7 = new Template(
-  "./test/stubs/collection/test7.njk",
-  "./test/stubs/",
-  "./test/stubs/_site"
-);
+let tmpl1, tmpl2, tmpl3, tmpl4, tmpl5, tmpl6, tmpl7;
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+
+  tmpl1 = new Template(
+    "./test/stubs/collection/test1.md",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+  tmpl2 = new Template(
+    "./test/stubs/collection/test2.md",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+  tmpl3 = new Template(
+    "./test/stubs/collection/test3.md",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+  tmpl4 = new Template(
+    "./test/stubs/collection/test4.md",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+  tmpl5 = new Template(
+    "./test/stubs/collection/test5.md",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+  tmpl6 = new Template(
+    "./test/stubs/collection/test6.html",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+  tmpl7 = new Template(
+    "./test/stubs/collection/test7.njk",
+    "./test/stubs/",
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
+  );
+});
 
 test("Basic setup", async (t) => {
   let c = new Collection();
@@ -179,12 +207,18 @@ test("partial match on tag string, issue 95", async (t) => {
   let cat = new Template(
     "./test/stubs/issue-95/cat.md",
     "./test/stubs/",
-    "./test/stubs/_site"
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
   );
   let notacat = new Template(
     "./test/stubs/issue-95/notacat.md",
     "./test/stubs/",
-    "./test/stubs/_site"
+    "./test/stubs/_site",
+    null,
+    null,
+    templateConfig
   );
 
   let c = new Collection();

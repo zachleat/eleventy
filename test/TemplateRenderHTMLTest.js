@@ -1,13 +1,18 @@
 const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 function getNewTemplateRender(name, inputDir) {
-  let tr = new TemplateRender(name, inputDir);
-  tr.extensionMap = new EleventyExtensionMap();
+  let tr = new TemplateRender(name, inputDir, templateConfig);
+  tr.extensionMap = new EleventyExtensionMap([], templateConfig);
   return tr;
 }
-
 // HTML
 test("HTML", (t) => {
   t.is(getNewTemplateRender("html").getEngineName(), "html");

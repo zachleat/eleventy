@@ -1,11 +1,23 @@
 const test = require("ava");
 const Template = require("../src/Template");
 const templateCache = require("../src/TemplateCache");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
+
+const getNewTemplate = (...args) => {
+  // monkey patching to add templateConfig to the end of every call
+  args = args.concat(Array(5).fill(null)).slice(0, 5).concat(templateConfig);
+  return new Template(...args);
+};
 
 test("Cache can save templates", (t) => {
   templateCache.clear();
 
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/template.ejs",
     "./test/stubs/",
     "./dist"
@@ -18,7 +30,7 @@ test("Cache can save templates", (t) => {
 test("TemplateCache clear", (t) => {
   templateCache.clear();
 
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/template.ejs",
     "./test/stubs/",
     "./dist"
@@ -33,7 +45,7 @@ test("TemplateCache clear", (t) => {
 test("TemplateCache has", (t) => {
   templateCache.clear();
 
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/template.ejs",
     "./test/stubs/",
     "./dist"
@@ -46,7 +58,7 @@ test("TemplateCache has", (t) => {
 test("TemplateCache get success", (t) => {
   templateCache.clear();
 
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/template.ejs",
     "./test/stubs/",
     "./dist"
@@ -59,7 +71,7 @@ test("TemplateCache get success", (t) => {
 test("TemplateCache get fail", (t) => {
   templateCache.clear();
 
-  let tmpl = new Template(
+  let tmpl = getNewTemplate(
     "./test/stubs/template.ejs",
     "./test/stubs/",
     "./dist"

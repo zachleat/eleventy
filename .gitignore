@@ -16,3 +16,4 @@ api-docs/
 _site/
 
 package-lock.json
+yarn.lock

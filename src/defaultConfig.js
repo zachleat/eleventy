@@ -1,10 +1,10 @@
-const urlFilter = require("./Filters/Url");
+const getUrlFilter = require("./Filters/Url");
 const slugFilter = require("./Filters/Slug");
 const getCollectionItem = require("./Filters/GetCollectionItem");
 
 module.exports = function (config) {
   config.addFilter("slug", slugFilter);
-  config.addFilter("url", urlFilter);
+  config.addFilter("url", getUrlFilter(config));
   config.addFilter("log", console.log);
 
   config.addFilter("getCollectionItem", (collection, page) =>

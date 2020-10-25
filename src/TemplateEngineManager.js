@@ -1,14 +1,11 @@
-const config = require("./Config");
-
 class TemplateEngineManager {
-  constructor() {
+  constructor(templateConfig) {
     this.engineCache = {};
+    this.templateConfig = templateConfig;
+    this._config = templateConfig.getConfig();
   }
 
   get config() {
-    if (!this._config) {
-      this._config = config.getConfig();
-    }
     return this._config;
   }
 
@@ -31,8 +28,8 @@ class TemplateEngineManager {
         "11ty.js": "JavaScript",
       };
 
-      if ("extensionMap" in this.config) {
-        for (let entry of this.config.extensionMap) {
+      if ("extensionMap" in this._config) {
+        for (let entry of this._config.extensionMap) {
           this._keyToClassNameMap[entry.key] = "Custom";
         }
       }
@@ -63,9 +60,9 @@ class TemplateEngineManager {
 
     let path = "./Engines/" + this.getClassNameFromTemplateKey(name);
     const cls = require(path);
-    let instance = new cls(name, includesDir);
+    let instance = new cls(name, includesDir, this.templateConfig);
     instance.extensionMap = extensionMap;
-    instance.config = this.config;
+    instance.config = this._config;
     instance.engineManager = this;
 
     // Make sure cache key is based on name and not path

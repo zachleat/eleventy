@@ -20,9 +20,16 @@ const debugDev = require("debug")("Dev:Eleventy:Template");
 const bench = require("./BenchmarkManager").get("Aggregate");
 
 class Template extends TemplateContent {
-  constructor(path, inputDir, outputDir, templateData, extensionMap) {
+  constructor(
+    path,
+    inputDir,
+    outputDir,
+    templateData,
+    extensionMap,
+    templateConfig
+  ) {
     debugDev("new Template(%o)", path);
-    super(path, inputDir);
+    super(path, inputDir, templateConfig);
 
     this.parsed = parsePath(path);
 
@@ -58,6 +65,7 @@ class Template extends TemplateContent {
     );
     this.fileSlugStr = this.fileSlug.getSlug();
     this.filePathStem = this.fileSlug.getFullPathWithoutExtension();
+    this.templateConfig = templateConfig;
   }
 
   setIsVerbose(isVerbose) {
@@ -86,10 +94,11 @@ class Template extends TemplateContent {
       this._layout = TemplateLayout.getTemplate(
         layoutKey,
         this.getInputDir(),
-        this.config,
+        this.templateConfig,
         this.extensionMap
       );
     }
+
     return this._layout;
   }
 
@@ -240,7 +249,6 @@ class Template extends TemplateContent {
       let mergedLayoutData = {};
       if (layoutKey) {
         let layout = this.getLayout(layoutKey);
-
         mergedLayoutData = await layout.getData();
         debugDev(
           "%o getData() get merged layout chain front matter",
@@ -494,7 +502,7 @@ class Template extends TemplateContent {
     } else {
       // needs collections for pagination items
       // but individual pagination entries won’t be part of a collection
-      this.paging = new Pagination(data);
+      this.paging = new Pagination(data, this.templateConfig);
       this.paging.setTemplate(this);
       let pageTemplates = await this.paging.getPageTemplates();
       let pageNumber = 0;
@@ -642,7 +650,8 @@ class Template extends TemplateContent {
       this.inputDir,
       this.outputDir,
       this.templateData,
-      this.extensionMap
+      this.extensionMap,
+      this.templateConfig
     );
     tmpl.config = this.config;
 

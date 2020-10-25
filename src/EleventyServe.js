@@ -2,15 +2,15 @@ const fs = require("fs-extra");
 const path = require("path");
 
 const TemplatePath = require("./TemplatePath");
-const config = require("./Config");
 const debug = require("debug")("EleventyServe");
 
 class EleventyServe {
   constructor() {}
 
   get config() {
-    return this.configOverride || config.getConfig();
+    return this.configOverride || this.config;
   }
+
   set config(config) {
     this.configOverride = config;
   }

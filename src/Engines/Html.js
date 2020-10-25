@@ -1,8 +1,8 @@
 const TemplateEngine = require("./TemplateEngine");
 
 class Html extends TemplateEngine {
-  constructor(name, includesDir) {
-    super(name, includesDir);
+  constructor(name, includesDir, templateConfig) {
+    super(name, includesDir, templateConfig);
     this.cacheable = true;
   }
 

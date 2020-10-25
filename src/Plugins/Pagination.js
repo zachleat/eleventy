@@ -2,13 +2,12 @@ const lodashChunk = require("lodash/chunk");
 const lodashGet = require("lodash/get");
 const lodashSet = require("lodash/set");
 const EleventyBaseError = require("../EleventyBaseError");
-const config = require("../Config");
 
 class PaginationError extends EleventyBaseError {}
 
 class Pagination {
-  constructor(data) {
-    this.config = config.getConfig();
+  constructor(data, eleventyConfig) {
+    this.config = eleventyConfig.getConfig();
 
     this.setData(data);
   }

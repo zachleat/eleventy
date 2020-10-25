@@ -2,8 +2,8 @@ const HandlebarsLib = require("handlebars");
 const TemplateEngine = require("./TemplateEngine");
 
 class Handlebars extends TemplateEngine {
-  constructor(name, includesDir) {
-    super(name, includesDir);
+  constructor(name, includesDir, templateConfig) {
+    super(name, includesDir, templateConfig);
 
     this.setLibrary(this.config.libraryOverrides.hbs);
   }

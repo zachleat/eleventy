@@ -6,19 +6,18 @@ const debug = require("debug")("Eleventy:TemplateEngine");
 const aggregateBench = require("../BenchmarkManager").get("Aggregate");
 
 class TemplateEngine {
-  constructor(name, includesDir) {
+  constructor(name, includesDir, templateConfig) {
     this.name = name;
     this.includesDir = includesDir;
     this.partialsHaveBeenCached = false;
     this.partials = [];
     this.engineLib = null;
     this.cacheable = false;
+    this.templateConfig = templateConfig;
+    this._config = templateConfig.getConfig();
   }
 
   get config() {
-    if (!this._config) {
-      this._config = require("../Config").getConfig();
-    }
     return this._config;
   }
 
@@ -36,8 +35,8 @@ class TemplateEngine {
 
   get extensionMap() {
     if (!this._extensionMap) {
-      this._extensionMap = new EleventyExtensionMap();
-      // this._extensionMap.config = this.config;
+      this._extensionMap = new EleventyExtensionMap([], this.templateConfig);
+      this._extensionMap.config = this._config;
     }
     return this._extensionMap;
   }

@@ -1,22 +1,29 @@
 const test = require("ava");
 const TemplateEngineManager = require("../src/TemplateEngineManager");
 const templateConfig = require("../src/Config");
-const config = templateConfig.getConfig();
+
+let config = {};
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+  config = templateConfig.getConfig();
+});
 
 test("Unsupported engine", async (t) => {
   t.throws(() => {
-    let tem = new TemplateEngineManager();
+    let tem = new TemplateEngineManager(templateConfig);
     tem.getEngine("doesnotexist");
   });
 });
 
 test("Supported engine", async (t) => {
-  let tem = new TemplateEngineManager();
+  let tem = new TemplateEngineManager(templateConfig);
   t.truthy(tem.hasEngine("ejs"));
 });
 
 test("Supported custom engine", async (t) => {
-  let tem = new TemplateEngineManager();
+  let tem = new TemplateEngineManager(templateConfig);
   tem.config = Object.assign({}, config);
   tem.config.extensionMap.add({
     extension: "txt",
@@ -38,7 +45,7 @@ test("Supported custom engine", async (t) => {
 test("Custom engine with custom init", async (t) => {
   let initCount = 0;
   let compileCount = 0;
-  let tem = new TemplateEngineManager();
+  let tem = new TemplateEngineManager(templateConfig);
   tem.config = Object.assign({}, config);
   tem.config.extensionMap.add({
     extension: "custom1",
@@ -69,7 +76,7 @@ test("Custom engine with custom init", async (t) => {
 });
 
 test("Handlebars Helpers", async (t) => {
-  let tem = new TemplateEngineManager();
+  let tem = new TemplateEngineManager(templateConfig);
   let engine = tem.getEngine("hbs");
   engine.addHelpers({
     uppercase: function (name) {
@@ -82,6 +89,6 @@ test("Handlebars Helpers", async (t) => {
 });
 
 test("getEngineLib", async (t) => {
-  let tem = new TemplateEngineManager();
+  let tem = new TemplateEngineManager(templateConfig);
   t.truthy(tem.getEngine("md").getEngineLib());
 });

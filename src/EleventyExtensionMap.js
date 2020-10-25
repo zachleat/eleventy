@@ -2,9 +2,10 @@ const TemplateEngineManager = require("./TemplateEngineManager");
 const TemplatePath = require("./TemplatePath");
 
 class EleventyExtensionMap {
-  constructor(formatKeys) {
+  constructor(formatKeys, templateConfig) {
     this.formatKeys = formatKeys;
-
+    this.config = templateConfig.getConfig();
+    this.templateConfig = templateConfig;
     this.setFormats(formatKeys);
   }
 
@@ -23,7 +24,7 @@ class EleventyExtensionMap {
   }
 
   get config() {
-    return this.configOverride || require("./Config").getConfig();
+    return this.configOverride || this.config;
   }
   set config(cfg) {
     this.configOverride = cfg;
@@ -31,7 +32,7 @@ class EleventyExtensionMap {
 
   get engineManager() {
     if (!this._engineManager) {
-      this._engineManager = new TemplateEngineManager();
+      this._engineManager = new TemplateEngineManager(this.templateConfig);
       this._engineManager.config = this.config;
     }
 

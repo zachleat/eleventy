@@ -1,13 +1,18 @@
 const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 function getNewTemplateRender(name, inputDir) {
-  let tr = new TemplateRender(name, inputDir);
-  tr.extensionMap = new EleventyExtensionMap();
+  let tr = new TemplateRender(name, inputDir, templateConfig);
+  tr.extensionMap = new EleventyExtensionMap([], templateConfig);
   return tr;
 }
-
 // Handlebars
 test("Handlebars", (t) => {
   t.is(getNewTemplateRender("hbs").getEngineName(), "hbs");
@@ -313,7 +318,11 @@ test("Handlebars Render Raw Output (Issue #436 with if statement)", async (t) =>
 });
 
 test("Handlebars Render #each with Global Variable (Issue #759)", async (t) => {
-  let fn = await new TemplateRender("hbs", "./test/stubs/").getCompiledTemplate(
+  let fn = await new TemplateRender(
+    "hbs",
+    "./test/stubs/",
+    templateConfig
+  ).getCompiledTemplate(
     `<ul>{{#each navigation as |navItem|}}<li><a href={{navItem.link}}>{{../name}}{{navItem.text}}</a></li>{{/each}}</ul>`
   );
   t.is(

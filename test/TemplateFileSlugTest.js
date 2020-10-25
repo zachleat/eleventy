@@ -1,9 +1,15 @@
 const test = require("ava");
 const TemplateFileSlug = require("../src/TemplateFileSlug");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
+const templateConfig = require("../src/Config");
+
+test.before(async () => {
+  // This runs concurrently with the above
+  await templateConfig.init();
+});
 
 function getNewSlugInstance(path, inputDir) {
-  let extensionMap = new EleventyExtensionMap();
+  let extensionMap = new EleventyExtensionMap([], templateConfig);
   let fs = new TemplateFileSlug(path, inputDir, extensionMap);
   return fs;
 }

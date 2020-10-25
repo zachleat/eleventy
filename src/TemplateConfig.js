@@ -21,8 +21,6 @@ class TemplateConfig {
     } else {
       this.customRootConfig = null;
     }
-    this.initializeRootConfig();
-    this.config = this.mergeConfig(this.localProjectConfigPath);
   }
 
   getLocalProjectConfigFile() {
@@ -37,20 +35,21 @@ class TemplateConfig {
     this._inputDir = inputDir;
   }
 
-  reset() {
+  async reset() {
     eleventyConfig.reset();
-    this.initializeRootConfig();
-    this.config = this.mergeConfig(this.localProjectConfigPath);
+    await this.init();
   }
 
   getConfig() {
+    if (!this.config) {
+      throw new Error(`getConfig() cannot be called before UserConfig.init().`);
+    }
     return this.config;
   }
 
-  setProjectConfigPath(path) {
+  async setProjectConfigPath(path) {
     this.localProjectConfigPath = path;
-
-    this.config = this.mergeConfig(path);
+    this.config = await this.mergeConfig(path);
   }
 
   setPathPrefix(pathPrefix) {
@@ -59,65 +58,24 @@ class TemplateConfig {
     this.config.pathPrefix = pathPrefix;
   }
 
-  initializeRootConfig() {
+  async init() {
     this.rootConfig = this.customRootConfig || require("./defaultConfig.js");
 
     if (typeof this.rootConfig === "function") {
-      this.rootConfig = this.rootConfig(eleventyConfig);
+      this.rootConfig = await this.rootConfig(eleventyConfig);
       // debug( "rootConfig is a function, after calling, eleventyConfig is %o", eleventyConfig );
     }
     debug("rootConfig %o", this.rootConfig);
+
+    this.config = await this.mergeConfig(this.localProjectConfigPath);
   }
 
-  mergeConfig(localProjectConfigPath) {
-    let localConfig = {};
-    let path = TemplatePath.join(
-      TemplatePath.getWorkingDir(),
-      localProjectConfigPath
-    );
-    debug(`Merging config with ${path}`);
-
-    if (fs.existsSync(path)) {
-      try {
-        // remove from require cache so it will grab a fresh copy
-        if (path in require.cache) {
-          deleteRequireCache(path);
-        }
-
-        localConfig = require(path);
-        // debug( "localConfig require return value: %o", localConfig );
-
-        if (typeof localConfig === "function") {
-          localConfig = localConfig(eleventyConfig);
-          // debug( "localConfig is a function, after calling, eleventyConfig is %o", eleventyConfig );
-
-          if (
-            typeof localConfig === "object" &&
-            typeof localConfig.then === "function"
-          ) {
-            throw new EleventyConfigError(
-              `Error in your Eleventy config file '${path}': Returning a promise is not supported`
-            );
-          }
-        }
-      } catch (err) {
-        throw new EleventyConfigError(
-          `Error in your Eleventy config file '${path}'.` +
-            (err.message.includes("Cannot find module")
-              ? chalk.blueBright(" You may need to run `npm install`.")
-              : ""),
-          err
-        );
-      }
-    } else {
-      debug("Eleventy local project config file not found, skipping.");
-    }
-
+  mergeEleventyConfig(localConfig) {
     let eleventyConfigApiMergingObject = eleventyConfig.getMergingConfigObject();
 
     // remove special merge keys from object
     let savedForSpecialMerge = {
-      templateFormatsAdded: eleventyConfigApiMergingObject.templateFormatsAdded
+      templateFormatsAdded: eleventyConfigApiMergingObject.templateFormatsAdded,
     };
     delete eleventyConfigApiMergingObject.templateFormatsAdded;
 
@@ -148,8 +106,64 @@ class TemplateConfig {
     // Unique
     merged.templateFormats = lodashUniq(merged.templateFormats);
 
-    debug("Current configuration: %o", merged);
+    return merged;
+  }
 
+  async mergeConfig(localProjectConfigPath) {
+    let localConfig = {};
+    let path = TemplatePath.join(
+      TemplatePath.getWorkingDir(),
+      localProjectConfigPath
+    );
+    debug(`Merging config with ${path}`);
+
+    // Note for Mike: I'm delaying the processing of plugins until here.
+    // Remember to come back and have a solid think about if this could
+    // results in different results when merging
+
+    if (fs.existsSync(path)) {
+      try {
+        // remove from require cache so it will grab a fresh copy
+        if (path in require.cache) {
+          deleteRequireCache(path);
+        }
+
+        localConfig = require(path);
+        // debug( "localConfig require return value: %o", localConfig );
+
+        if (typeof localConfig === "function") {
+          localConfig = await localConfig(eleventyConfig);
+          // debug( "localConfig is a function, after calling, eleventyConfig is %o", eleventyConfig );
+
+          if (
+            typeof localConfig === "object" &&
+            typeof localConfig.then === "function"
+          ) {
+            throw new EleventyConfigError(
+              `Error in your Eleventy config file '${path}': Returning a promise is not supported`
+            );
+          }
+        }
+      } catch (err) {
+        throw new EleventyConfigError(
+          `Error in your Eleventy config file '${path}'.` +
+            (err.message.includes("Cannot find module")
+              ? chalk.blueBright(" You may need to run `npm install`.")
+              : ""),
+          err
+        );
+      }
+    } else {
+      debug("Eleventy local project config file not found, skipping.");
+    }
+
+    // If passing template config data to plugins, we need to re-merge the data after applying plugins
+    // each plugin has the abilty to change the eleventyConfig and thus the data that is merged from this
+    let merged = this.mergeEleventyConfig(localConfig);
+    await eleventyConfig.applyPlugins(merged);
+    merged = this.mergeEleventyConfig(localConfig);
+
+    debug("Current configuration: %o", merged);
     return merged;
   }
 }
