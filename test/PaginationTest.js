@@ -2,6 +2,9 @@ const test = require("ava");
 const Template = require("../src/Template");
 const TemplateData = require("../src/TemplateData");
 const Pagination = require("../src/Plugins/Pagination");
+const templateConfig = require("../src/Config");
+
+const config = templateConfig.getConfig();
 
 test("No data passed to pagination", async (t) => {
   let tmpl = new Template(
@@ -560,6 +563,21 @@ test("No circular dependency (does not throw)", (t) => {
   t.true(true);
 });
 
+test("Renamed tags should still work", (t) => {
+  new Pagination({
+    collections: {
+      tag1: [],
+    },
+    pagination: {
+      data: "collections.tag1",
+      size: 1,
+    },
+    tags: ["tag2"],
+  });
+
+  t.true(true);
+});
+
 test("Circular dependency (pagination iterates over tag1 but also supplies pages to tag1)", (t) => {
   t.throws(() => {
     new Pagination({
@@ -574,6 +592,37 @@ test("Circular dependency (pagination iterates over tag1 but also supplies pages
       tags: ["tag1"],
     });
   });
+});
+
+test("Circular dependency (pagination iterates over tag1 but also supplies pages to tag1) 2", (t) => {
+  config.keys.tags = "categories";
+  t.throws(() => {
+    new Pagination({
+      collections: {
+        tag1: [],
+        tag2: [],
+      },
+      pagination: {
+        data: "collections.tag1",
+        size: 1,
+      },
+      categories: ["tag1"],
+    });
+  });
+  t.notThrows(() => {
+    new Pagination({
+      collections: {
+        tag1: [],
+        tag2: [],
+      },
+      pagination: {
+        data: "collections.tag1",
+        size: 1,
+      },
+      tags: ["tag1"],
+    });
+  });
+  config.keys.tags = "tags";
 });
 
 test("Circular dependency but should not error because it uses eleventyExcludeFromCollections", (t) => {

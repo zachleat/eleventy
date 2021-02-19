@@ -25,6 +25,11 @@ let tmpl5 = new Template(
   "./test/stubs/",
   "./test/stubs/_site"
 );
+let tmpl6 = new Template(
+  "./test/stubs/templateMapCollection/test6.md",
+  "./test/stubs/",
+  "./test/stubs/_site"
+);
 
 test("TemplateMap has collections added", async (t) => {
   let tm = new TemplateMap();

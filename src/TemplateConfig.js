@@ -82,6 +82,10 @@ class TemplateConfig {
     this._inputDir = inputDir;
   }
 
+  get tagsCollection() {
+    return this.config.keys.tags;
+  }
+
   /**
    * Resets the configuration.
    */

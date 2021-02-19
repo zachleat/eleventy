@@ -2,5 +2,8 @@
 tags:
   - multi-tag
   - multi-tag-2
+categories:
+  - multi-category
+  - multi-category-2
 ---
-{% if tags.includes("multi-tag-2") %}Has multi-tag-2{% endif %}
+{% if tags.includes("multi-tag-2") %}Has multi-tag-2{% endif %}{% if categories.includes("multi-category-2") %}Has multi-category-2{% endif %}

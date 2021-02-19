@@ -74,9 +74,13 @@ test("_testGetCollectionsData", async (t) => {
   let paths = await tw._getAllPaths();
   let templateMap = await tw._createTemplateMap(paths);
   let collectionsData = await templateMap._testGetCollectionsData();
+
+  t.is(collectionsData.all.length, 5);
   t.is(collectionsData.post.length, 2);
   t.is(collectionsData.cat.length, 2);
   t.is(collectionsData.dog.length, 1);
+  t.is(collectionsData.A, undefined);
+  t.is(collectionsData.B, undefined);
 });
 
 // TODO remove this (used by other test things)

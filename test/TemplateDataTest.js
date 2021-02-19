@@ -404,6 +404,35 @@ test("TemplateData.cleanupData", (t) => {
   });
 });
 
+test("TemplateData.cleanupData when tags renamed", (t) => {
+  config.keys.tags = "categories";
+
+  // tags key becomes normal, non normalised field
+  t.deepEqual(TemplateData.cleanupData({}), {});
+  t.deepEqual(TemplateData.cleanupData({ tags: null }), { tags: null });
+  t.deepEqual(TemplateData.cleanupData({ tags: "" }), { tags: "" });
+  t.deepEqual(TemplateData.cleanupData({ tags: [] }), { tags: [] });
+  t.deepEqual(TemplateData.cleanupData({ tags: "test" }), { tags: "test" });
+  t.deepEqual(TemplateData.cleanupData({ tags: ["test1", "test2"] }), {
+    tags: ["test1", "test2"],
+  });
+  // categories takes role of tags
+  t.deepEqual(TemplateData.cleanupData({}), {});
+  t.deepEqual(TemplateData.cleanupData({ categories: null }), {
+    categories: [],
+  });
+  t.deepEqual(TemplateData.cleanupData({ categories: "" }), { categories: [] });
+  t.deepEqual(TemplateData.cleanupData({ categories: [] }), { categories: [] });
+  t.deepEqual(TemplateData.cleanupData({ categories: "test" }), {
+    categories: ["test"],
+  });
+  t.deepEqual(TemplateData.cleanupData({ categories: ["test1", "test2"] }), {
+    categories: ["test1", "test2"],
+  });
+
+  config.keys.tags = "tags";
+});
+
 test("Parent directory for data (Issue #337)", async (t) => {
   let dataObj = new TemplateData("./test/stubs-337/src/");
   dataObj._setConfig({

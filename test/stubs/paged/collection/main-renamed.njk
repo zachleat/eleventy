@@ -1,0 +1,8 @@
+---
+pagination:
+  data: collections.tag2
+  size: 2
+categories:
+  - pagingtag
+---
+<ol>{% for item in pagination.items %}<li>{{ item.url }}</li>{% endfor %}</ol>

@@ -1,10 +1,8 @@
 ---
 title: Test Title
-tags:
+dogs:
   - post
   - dog
-categories:
-  - A
 ---
 
 # Test 1

@@ -44,7 +44,9 @@ module.exports = function (config) {
       permalinkRoot: "permalinkBypassOutputDir",
       engineOverride: "templateEngineOverride",
       computed: "eleventyComputed",
+      tags: "tags",
     },
+    writeTagsToCollections: true, // true - legacy behaviour, false - disables, string value - item inside collections
     dir: {
       input: ".",
       includes: "_includes",

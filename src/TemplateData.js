@@ -557,11 +557,13 @@ class TemplateData {
   }
 
   static cleanupData(data) {
-    if ("tags" in data) {
-      if (typeof data.tags === "string") {
-        data.tags = data.tags ? [data.tags] : [];
-      } else if (data.tags === null) {
-        data.tags = [];
+    if (config.tagsCollection in data) {
+      if (typeof data[config.tagsCollection] === "string") {
+        data[config.tagsCollection] = data[config.tagsCollection]
+          ? [data[config.tagsCollection]]
+          : [];
+      } else if (data[config.tagsCollection] === null) {
+        data[config.tagsCollection] = [];
       }
     }
 

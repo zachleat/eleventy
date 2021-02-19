@@ -30,7 +30,7 @@ class Pagination {
     }
 
     let key = data.pagination.data;
-    let tags = data.tags || [];
+    let tags = data[config.tagsCollection] || [];
     for (let tag of tags) {
       if (`collections.${tag}` === key) {
         throw new PaginationError(

@@ -287,6 +287,11 @@ class UserConfig {
     this.collections[name] = callback;
   }
 
+  hasCollection(name) {
+    name = this.getNamespacedName(name);
+    return this.collections[name];
+  }
+
   addPlugin(plugin, options) {
     // TODO support function.name in plugin config functions
     debug("Adding plugin (unknown name: check your config file).");

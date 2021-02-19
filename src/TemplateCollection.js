@@ -1,5 +1,6 @@
 const multimatch = require("multimatch");
 const Sortable = require("./Util/Sortable");
+const config = require("./Config");
 const TemplatePath = require("./TemplatePath");
 
 class TemplateCollection extends Sortable {
@@ -7,6 +8,18 @@ class TemplateCollection extends Sortable {
     super();
 
     this._filteredByGlobsCache = new Map();
+  }
+
+  set config(config) {
+    this._config = config;
+  }
+
+  get config() {
+    if (!this._config) {
+      this._config = config.getConfig();
+    }
+
+    return this._config;
   }
 
   // right now this is only used by the tests
@@ -34,7 +47,7 @@ class TemplateCollection extends Sortable {
       globs = [globs];
     }
 
-    globs = globs.map(glob => TemplatePath.addLeadingDotSlash(glob));
+    globs = globs.map((glob) => TemplatePath.addLeadingDotSlash(glob));
 
     return globs;
   }
@@ -53,7 +66,7 @@ class TemplateCollection extends Sortable {
       this._filteredByGlobsCache = new Map();
     }
 
-    let filtered = this.getAllSorted().filter(item => {
+    let filtered = this.getAllSorted().filter((item) => {
       if (multimatch([item.inputPath], globs).length) {
         return true;
       }
@@ -66,20 +79,20 @@ class TemplateCollection extends Sortable {
   }
 
   getFilteredByTag(tagName) {
-    return this.getAllSorted().filter(item => {
+    return this.getAllSorted().filter((item) => {
       if (!tagName) {
         return true;
-      } else if (Array.isArray(item.data.tags)) {
-        return item.data.tags.some(tag => tag === tagName);
+      } else if (Array.isArray(item.data[config.tagsCollection])) {
+        return item.data[config.tagsCollection].some((tag) => tag === tagName);
       }
       return false;
     });
   }
 
   getFilteredByTags(...tags) {
-    return this.getAllSorted().filter(item =>
-      tags.every(requiredTag => {
-        const itemTags = item.data.tags;
+    return this.getAllSorted().filter((item) =>
+      tags.every((requiredTag) => {
+        const itemTags = item.data[config.tagsCollection];
         if (Array.isArray(itemTags)) {
           return itemTags.includes(requiredTag);
         } else {
