@@ -48,7 +48,7 @@ class ComputedData {
         let varsUsed = await proxy.findVarsUsed(computed, data);
 
         debug("%o accesses %o variables", key, varsUsed);
-        let filteredVarsUsed = varsUsed.filter((varUsed) => {
+        let filteredVarsUsed = varsUsed.filter(varUsed => {
           return (
             (varUsed !== key && this.computedKeys.has(varUsed)) ||
             varUsed.startsWith("collections.")

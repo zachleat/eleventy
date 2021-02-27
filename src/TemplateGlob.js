@@ -25,7 +25,7 @@ class TemplateGlob {
     if (typeof files === "string") {
       return TemplateGlob.normalize(files);
     } else if (Array.isArray(files)) {
-      return files.map(function(path) {
+      return files.map(function (path) {
         return TemplateGlob.normalize(path);
       });
     } else {

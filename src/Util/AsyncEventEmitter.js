@@ -7,7 +7,7 @@ class AsyncEventEmitter extends EventEmitter {
       return;
     }
 
-    return await Promise.all(listeners.map((h) => h.apply(this, args)));
+    return await Promise.all(listeners.map(h => h.apply(this, args)));
   }
 }
 

@@ -11,7 +11,7 @@ class Sortable {
       "A-Z": "Ascending",
       "Z-A": "Descending",
       "0-9": "NumericAscending",
-      "9-0": "NumericDescending"
+      "9-0": "NumericDescending",
     };
   }
 

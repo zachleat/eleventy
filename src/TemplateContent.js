@@ -225,7 +225,7 @@ class TemplateContent {
       let res;
       cache.set(
         key,
-        new Promise((resolve) => {
+        new Promise(resolve => {
           res = resolve;
         })
       );
@@ -278,7 +278,7 @@ class TemplateContent {
 
 TemplateContent._inputCache = new Map();
 TemplateContent._compileEngineCache = new Map();
-eventBus.on("resourceModified", (path) => {
+eventBus.on("resourceModified", path => {
   TemplateContent.deleteCached(path);
 });
 

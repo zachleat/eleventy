@@ -1,8 +1,8 @@
 const slugify = require("slugify");
 
-module.exports = function(str) {
+module.exports = function (str) {
   return slugify(str, {
     replacement: "-",
-    lower: true
+    lower: true,
   });
 };

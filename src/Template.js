@@ -210,12 +210,12 @@ class Template extends TemplateContent {
       return str;
     } else if (Array.isArray(data)) {
       return Promise.all(
-        data.map((item) => this.mapDataAsRenderedTemplates(item, templateData))
+        data.map(item => this.mapDataAsRenderedTemplates(item, templateData))
       );
     } else if (lodashIsObject(data)) {
       let obj = {};
       await Promise.all(
-        Object.keys(data).map(async (value) => {
+        Object.keys(data).map(async value => {
           obj[value] = await this.mapDataAsRenderedTemplates(
             data[value],
             templateData
@@ -432,7 +432,7 @@ class Template extends TemplateContent {
     } else if (typeof obj === "string") {
       computedData.addTemplateString(
         parentKey,
-        async (innerData) => {
+        async innerData => {
           return await super.render(obj, innerData, true);
         },
         declaredDependencies
@@ -452,13 +452,13 @@ class Template extends TemplateContent {
       // this allows computed entries to use page.url or page.outputPath and they’ll be resolved properly
       this.computedData.addTemplateString(
         "page.url",
-        async (data) => await this.getOutputHref(data),
+        async data => await this.getOutputHref(data),
         data.permalink ? ["permalink"] : undefined
       );
 
       this.computedData.addTemplateString(
         "page.outputPath",
-        async (data) => await this.getOutputPath(data),
+        async data => await this.getOutputPath(data),
         data.permalink ? ["permalink"] : undefined
       );
 
@@ -577,7 +577,7 @@ class Template extends TemplateContent {
   async getRenderedTemplates(data) {
     let pages = await this.getTemplates(data);
     await Promise.all(
-      pages.map(async (page) => {
+      pages.map(async page => {
         let content = await page.template._getContent(
           page.outputPath,
           page.data
@@ -663,7 +663,7 @@ class Template extends TemplateContent {
 
   async generateMapEntry(mapEntry, to) {
     return Promise.all(
-      mapEntry._pages.map(async (page) => {
+      mapEntry._pages.map(async page => {
         let content = await this.renderPageEntry(mapEntry, page);
         if (to === "json" || to === "ndjson") {
           let obj = {
@@ -814,10 +814,10 @@ class Template extends TemplateContent {
     let entries = await this.getTemplateMapEntries();
 
     let nestedContent = await Promise.all(
-      entries.map(async (entry) => {
+      entries.map(async entry => {
         entry._pages = await entry.template.getTemplates(entry.data);
         return Promise.all(
-          entry._pages.map(async (page) => {
+          entry._pages.map(async page => {
             page.templateContent = await entry.template.getTemplateMapContent(
               page
             );

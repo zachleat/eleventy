@@ -213,7 +213,7 @@ class TemplateWriter {
   async _generateTemplate(mapEntry, to) {
     let tmpl = mapEntry.template;
 
-    return tmpl.generateMapEntry(mapEntry, to).then((pages) => {
+    return tmpl.generateMapEntry(mapEntry, to).then(pages => {
       this.skippedCount += tmpl.getSkippedCount();
       this.writeCount += tmpl.getWriteCount();
       return pages;
@@ -226,7 +226,7 @@ class TemplateWriter {
       passthroughManager.setIncrementalFile(this.incrementalFile);
     }
 
-    return passthroughManager.copyAll(paths).catch((e) => {
+    return passthroughManager.copyAll(paths).catch(e => {
       this.errorHandler.warn(e, "Error with passthrough copy");
       return Promise.reject(
         new TemplateWriterWriteError("Having trouble copying", e)
@@ -294,7 +294,7 @@ class TemplateWriter {
       promises.push(...(await this.generateTemplates(paths)));
     }
 
-    return Promise.all(promises).catch((e) => {
+    return Promise.all(promises).catch(e => {
       this.errorHandler.error(e, "Error writing templates");
       throw e;
     });
@@ -307,11 +307,11 @@ class TemplateWriter {
     let promises = await this.generateTemplates(paths, to);
 
     return Promise.all(promises)
-      .then((results) => {
+      .then(results => {
         let flat = lodashFlatten(results); // switch to results.flat(1) with Node 12+
         return flat;
       })
-      .catch((e) => {
+      .catch(e => {
         this.errorHandler.error(e, "Error generating templates");
         throw e;
       });

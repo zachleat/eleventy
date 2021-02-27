@@ -31,7 +31,7 @@ class Ejs extends TemplateEngine {
       {
         root: "./" + includesDir,
         compileDebug: true,
-        filename: "./" + includesDir
+        filename: "./" + includesDir,
       },
       this.ejsOptions || {}
     );
@@ -46,7 +46,7 @@ class Ejs extends TemplateEngine {
 
     let fn = this.ejsLib.compile(str, options);
 
-    return function(data) {
+    return function (data) {
       return fn(data);
     };
   }

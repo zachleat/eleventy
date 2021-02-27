@@ -212,10 +212,10 @@ class EleventyFiles {
     if (ignoreContent) {
       ignores = ignoreContent
         .split("\n")
-        .map((line) => {
+        .map(line => {
           return line.trim();
         })
-        .filter((line) => {
+        .filter(line => {
           if (line.charAt(0) === "!") {
             debug(
               ">>> When processing .gitignore/.eleventyignore, Eleventy does not currently support negative patterns but encountered one:"
@@ -231,7 +231,7 @@ class EleventyFiles {
             line.length > 0 && line.charAt(0) !== "#" && line.charAt(0) !== "!"
           );
         })
-        .map((line) => {
+        .map(line => {
           let path = TemplateGlob.normalizePath(dir, "/", line);
           path = TemplatePath.addLeadingDotSlash(
             TemplatePath.relativePath(path)
@@ -316,7 +316,7 @@ class EleventyFiles {
       );
     }
 
-    return this.pathCache.filter((path) =>
+    return this.pathCache.filter(path =>
       this.extensionMap.isFullTemplateFilename(path)
     );
   }
@@ -386,7 +386,7 @@ class EleventyFiles {
   /* Ignored by `eleventy --watch` */
   getGlobWatcherIgnores() {
     // convert to format without ! since they are passed in as a separate argument to glob watcher
-    return this.fileIgnores.map((ignore) =>
+    return this.fileIgnores.map(ignore =>
       TemplatePath.stripLeadingDotSlash(ignore.substr(1))
     );
   }

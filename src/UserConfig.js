@@ -349,9 +349,7 @@ class UserConfig {
 
   _normalizeTemplateFormats(templateFormats) {
     if (typeof templateFormats === "string") {
-      templateFormats = templateFormats
-        .split(",")
-        .map((format) => format.trim());
+      templateFormats = templateFormats.split(",").map(format => format.trim());
     }
     return templateFormats;
   }

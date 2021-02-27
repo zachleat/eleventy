@@ -1,14 +1,14 @@
-module.exports = function(str, options) {
+module.exports = function (str, options) {
   options = Object.assign(
     {
-      lowercaseRestOfWord: false
+      lowercaseRestOfWord: false,
     },
     options
   );
 
   return str
     .split(" ")
-    .map(function(word) {
+    .map(function (word) {
       return (
         word.substr(0, 1).toUpperCase() +
         (options.lowercaseRestOfWord

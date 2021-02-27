@@ -103,7 +103,7 @@ class EleventyServe {
           return;
         }
 
-        fs.unlink(savedPathFilename, (err) => {
+        fs.unlink(savedPathFilename, err => {
           if (!err) {
             debug(`Cleanup redirect: Deleted ${savedPathFilename}`);
           }

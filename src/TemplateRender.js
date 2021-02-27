@@ -90,10 +90,10 @@ class TemplateRender {
     let usingMarkdown = false;
     (engineName || "")
       .split(",")
-      .map((name) => {
+      .map(name => {
         return name.toLowerCase().trim();
       })
-      .forEach((name) => {
+      .forEach(name => {
         // html is assumed (treated as plaintext by the system)
         if (!name || name === "html") {
           return;

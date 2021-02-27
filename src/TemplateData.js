@@ -159,7 +159,7 @@ class TemplateData {
 
     if (this.hasUserDataExtensions()) {
       let userPaths = this.getUserDataExtensions().map(
-        (extension) => `${dir}/**/*.${extension}` // covers .11tydata.{extension} too
+        extension => `${dir}/**/*.${extension}` // covers .11tydata.{extension} too
       );
       paths = userPaths.concat(paths);
     }
@@ -316,7 +316,7 @@ class TemplateData {
     }
 
     // Filter out files we know don't exist to avoid overhead for checking
-    localDataPaths = localDataPaths.filter((path) => {
+    localDataPaths = localDataPaths.filter(path => {
       return this._fsExistsCache.exists(path);
     });
 

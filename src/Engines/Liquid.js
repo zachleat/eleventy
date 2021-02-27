@@ -172,7 +172,7 @@ class Liquid extends TemplateEngine {
 
           var stream = liquidEngine.parser
             .parseStream(remainTokens)
-            .on("template", (tpl) => this.templates.push(tpl))
+            .on("template", tpl => this.templates.push(tpl))
             .on("tag:end" + shortcodeName, () => stream.stop())
             .on("end", () => {
               throw new Error(`tag ${tagToken.raw} not closed`);

@@ -6,24 +6,24 @@ function TemplatePermalink(link, extraSubdir) {
   this.extraSubdir = extraSubdir || "";
 }
 
-TemplatePermalink.prototype._cleanLink = function(link) {
+TemplatePermalink.prototype._cleanLink = function (link) {
   return link + (link.substr(-1) === "/" ? "index.html" : "");
 };
 
-TemplatePermalink.prototype.resolve = function() {
+TemplatePermalink.prototype.resolve = function () {
   let parsed = parsePath(this.link);
 
   return TemplatePath.join(parsed.dir, this.extraSubdir, parsed.base);
 };
 
-TemplatePermalink.prototype.toString = function() {
+TemplatePermalink.prototype.toString = function () {
   return this.resolve();
 };
 
 // remove all index.html’s from links
 // index.html becomes /
 // test/index.html becomes test/
-TemplatePermalink.prototype.toHref = function() {
+TemplatePermalink.prototype.toHref = function () {
   let str = this.toString();
   let original = (str.charAt(0) !== "/" ? "/" : "") + this.toString();
   let needle = "/index.html";
@@ -35,7 +35,7 @@ TemplatePermalink.prototype.toHref = function() {
   return original;
 };
 
-TemplatePermalink._hasDuplicateFolder = function(dir, base) {
+TemplatePermalink._hasDuplicateFolder = function (dir, base) {
   let folders = dir.split("/");
   if (!folders[folders.length - 1]) {
     folders.pop();
@@ -43,7 +43,7 @@ TemplatePermalink._hasDuplicateFolder = function(dir, base) {
   return folders[folders.length - 1] === base;
 };
 
-TemplatePermalink.generate = function(
+TemplatePermalink.generate = function (
   dir,
   filenameNoExt,
   extraSubdir,

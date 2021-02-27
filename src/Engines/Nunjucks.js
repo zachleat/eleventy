@@ -12,20 +12,20 @@ const eventBus = require("../EventBus");
 (function () {
   let templateCache = new Map();
 
-  let getKey = (obj) => {
+  let getKey = obj => {
     return [
       obj.path || obj.tmplStr,
       obj.tmplStr.length,
       obj.env.asyncFilters.length,
       obj.env.extensionsList
-        .map((e) => {
+        .map(e => {
           return e.__id || "";
         })
         .join(":"),
     ].join(" :: ");
   };
 
-  let evictByPath = (path) => {
+  let evictByPath = path => {
     let keys = templateCache.keys();
     // Likely to be slow; do we care?
     for (let k of keys) {
@@ -68,7 +68,7 @@ const eventBus = require("../EventBus");
   // We replace it with a version that doesn't allocate a `parts` array on
   // repeat key use.
   let partsCache = new Map();
-  let partsFromCache = (name) => {
+  let partsFromCache = name => {
     if (partsCache.has(name)) {
       return partsCache.get(name);
     }
@@ -128,7 +128,7 @@ class Nunjucks extends TemplateEngine {
     this.njkEnv = env || new NunjucksLib.Environment(fsLoader);
     // Correct, but overbroad. Better would be to evict more granularly, but
     // resolution from paths isn't straightforward.
-    eventBus.on("resourceModified", (path) => {
+    eventBus.on("resourceModified", path => {
       this.njkEnv.invalidateCache();
     });
 

@@ -128,7 +128,7 @@ class Pagination {
     }
 
     if (this.data.pagination.filter) {
-      result = result.filter((value) => !this.isFiltered(value));
+      result = result.filter(value => !this.isFiltered(value));
     }
 
     return result;
@@ -193,7 +193,7 @@ class Pagination {
           size: this.data.pagination.size,
           alias: this.alias,
 
-          pages: this.size === 1 ? items.map((entry) => entry[0]) : items,
+          pages: this.size === 1 ? items.map(entry => entry[0]) : items,
 
           // See Issue #345 for more examples
           page: {

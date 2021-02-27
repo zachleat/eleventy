@@ -546,7 +546,7 @@ Arguments:
     // Is a CSS input file and is not in the includes folder
     // TODO check output path file extension of this template (not input path)
     // TODO add additional API for this, maybe a config callback?
-    let onlyCssChanges = this.watchManager.hasAllQueueFiles((path) => {
+    let onlyCssChanges = this.watchManager.hasAllQueueFiles(path => {
       return (
         path.endsWith(".css") &&
         // TODO how to make this work with relative includes?
@@ -716,7 +716,7 @@ Arguments:
     this.watcher = watcher;
 
     let watchDelay;
-    let watchRun = async (path) => {
+    let watchRun = async path => {
       try {
         this._addFileToWatchQueue(path);
         clearTimeout(watchDelay);
@@ -737,12 +737,12 @@ Arguments:
       }
     };
 
-    watcher.on("change", async (path) => {
+    watcher.on("change", async path => {
       this.logger.log(`File changed: ${path}`);
       await watchRun(path);
     });
 
-    watcher.on("add", async (path) => {
+    watcher.on("add", async path => {
       this.logger.log(`File added: ${path}`);
       await watchRun(path);
     });

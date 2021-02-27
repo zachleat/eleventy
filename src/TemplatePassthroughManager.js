@@ -72,7 +72,7 @@ class TemplatePassthroughManager {
   }
 
   getConfigPathGlobs() {
-    return this.getConfigPaths().map((path) => {
+    return this.getConfigPaths().map(path => {
       return TemplatePath.convertToRecursiveGlobSync(path.inputPath);
     });
   }
@@ -103,7 +103,7 @@ class TemplatePassthroughManager {
 
     return pass
       .write()
-      .then((fileCopyCount) => {
+      .then(fileCopyCount => {
         if (pass.isDryRun) {
           // We don’t count the skipped files as we need to iterate over them
           debug(

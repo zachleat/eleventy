@@ -1,7 +1,7 @@
 const validUrl = require("valid-url");
 const TemplatePath = require("../TemplatePath");
 
-module.exports = function(url, pathPrefix) {
+module.exports = function (url, pathPrefix) {
   // work with undefined
   url = url || "";
 

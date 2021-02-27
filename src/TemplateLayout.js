@@ -52,7 +52,7 @@ class TemplateLayout extends TemplateContent {
     return {
       key: this.dataKeyLayoutPath,
       template: this,
-      frontMatterData: await this.getFrontMatterData()
+      frontMatterData: await this.getFrontMatterData(),
     };
   }
 

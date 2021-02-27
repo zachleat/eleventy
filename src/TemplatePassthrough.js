@@ -60,7 +60,7 @@ class TemplatePassthrough {
     const files = TemplatePath.addLeadingDotSlashArray(
       await fastglob(glob, {
         caseSensitiveMatch: false,
-        dot: true
+        dot: true,
       })
     );
     bench.after();
@@ -76,12 +76,12 @@ class TemplatePassthrough {
       let fileCopyCount = 0;
       // copy() returns a promise
       return copy(src, dest, copyOptions)
-        .on(copy.events.COPY_FILE_START, function(copyOp) {
+        .on(copy.events.COPY_FILE_START, function (copyOp) {
           // Access to individual files at `copyOp.src`
           debug("Copying individual file %o", copyOp.src);
           aggregateBench.get("Passthrough Copy File").before();
         })
-        .on(copy.events.COPY_FILE_COMPLETE, function() {
+        .on(copy.events.COPY_FILE_COMPLETE, function () {
           fileCopyCount++;
           aggregateBench.get("Passthrough Copy File").after();
         })
@@ -101,7 +101,7 @@ class TemplatePassthrough {
       overwrite: true,
       dot: true,
       junk: false,
-      results: false
+      results: false,
     };
 
     if (!this.isDryRun) {

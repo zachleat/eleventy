@@ -54,7 +54,7 @@ class EleventyWatch {
     if (typeof file === "function") {
       filterCallback = file;
     } else {
-      filterCallback = (path) => path === file;
+      filterCallback = path => path === file;
     }
 
     return this.activeQueue.filter(filterCallback);

@@ -25,7 +25,7 @@ class ComputedDataQueue {
       return true;
     }
     return (
-      this.graph.dependenciesOf(name).filter((entry) => {
+      this.graph.dependenciesOf(name).filter(entry => {
         return entry.startsWith(prefix);
       }).length > 0
     );

@@ -13,12 +13,12 @@ class EleventyExtensionMap {
       return key.trim().toLowerCase();
     });
 
-    this.validTemplateLanguageKeys = this.unfilteredFormatKeys.filter((key) =>
+    this.validTemplateLanguageKeys = this.unfilteredFormatKeys.filter(key =>
       this.hasExtension(key)
     );
 
     this.passthroughCopyKeys = this.unfilteredFormatKeys.filter(
-      (key) => !this.hasExtension(key)
+      key => !this.hasExtension(key)
     );
   }
 
