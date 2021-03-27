@@ -1,0 +1,11 @@
+---js
+{
+  dataCanBeFoundIn: "items",
+  pagination: {
+    data: (data) => data.dataCanBeFoundIn,
+    size: 1
+  },
+  items: ["foo", "woo"]
+}
+---
+<ol>{% for item in pagination.items %}<li>{{ item }}</li>{% endfor %}</ol>
