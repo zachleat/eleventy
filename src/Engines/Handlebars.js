@@ -12,11 +12,6 @@ class Handlebars extends TemplateEngine {
     this.handlebarsLib = lib || HandlebarsLib;
     this.setEngineLib(this.handlebarsLib);
 
-    let partials = super.getPartials();
-    for (let name in partials) {
-      this.handlebarsLib.registerPartial(name, partials[name]);
-    }
-
     // TODO these all go to the same place (addHelper), add warnings for overwrites
     this.addHelpers(this.config.handlebarsHelpers);
     this.addShortcodes(this.config.handlebarsShortcodes);
@@ -54,7 +49,19 @@ class Handlebars extends TemplateEngine {
     }
   }
 
+  /**
+   * @override
+   */
+  async cachePartialFiles() {
+    let partials = await super.cachePartialFiles();
+    this.handlebarsLib.registerPartial(partials);
+    return partials;
+  }
+
   async compile(str) {
+    // Ensure partials are cached and registered.
+    await this.getPartials();
+
     let fn = this.handlebarsLib.compile(str);
     return function (data) {
       return fn(data);

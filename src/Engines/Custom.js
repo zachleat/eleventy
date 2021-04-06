@@ -26,6 +26,9 @@ class CustomEngine extends TemplateEngine {
     );
   }
 
+  /**
+   * @override
+   */
   needsToReadFileContents() {
     if ("read" in this.entry) {
       return this.entry.read;

@@ -73,6 +73,11 @@ class JavaScript extends TemplateEngine {
     return require(requirePath);
   }
 
+  /**
+   * JavaScript files defer to the module loader rather than read the files to strings
+   *
+   * @override
+   */
   needsToReadFileContents() {
     return false;
   }
