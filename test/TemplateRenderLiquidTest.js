@@ -660,6 +660,38 @@ test("Liquid Nested Paired Shortcode", async (t) => {
   );
 });
 
+test("Liquid Paired Kwargs Shortcode with Tag Inside", async (t) => {
+  let tr = getNewTemplateRender("liquid", "./test/stubs/");
+  tr.engine.addPairedShortcode("postfixWithZach", function (content, kwargs) {
+    var { str } = kwargs && kwargs.__keywords === true ? kwargs : {};
+    return str + content + "Zach";
+  });
+
+  t.is(
+    await tr._testRender(
+      "{% postfixWithZach str=name %}Content{% if tester %}If{% endif %}{% endpostfixWithZach %}",
+      { name: "test", tester: true }
+    ),
+    "testContentIfZach"
+  );
+});
+
+test("Liquid Nested Paired Kwargs Shortcode", async (t) => {
+  let tr = getNewTemplateRender("liquid", "./test/stubs/");
+  tr.engine.addPairedShortcode("postfixWithZach", function (content, kwargs) {
+    var { str } = kwargs && kwargs.__keywords === true ? kwargs : {};
+    return str + content + "Zach";
+  });
+
+  t.is(
+    await tr._testRender(
+      "{% postfixWithZach str=name %}Content{% postfixWithZach str=name2 %}Content{% endpostfixWithZach %}{% endpostfixWithZach %}",
+      { name: "test", name2: "test2" }
+    ),
+    "testContenttest2ContentZachZach"
+  );
+});
+
 test("Liquid Shortcode Multiple Args", async (t) => {
   let tr = getNewTemplateRender("liquid", "./test/stubs/");
   tr.engine.addShortcode("postfixWithZach", function (str, str2) {
@@ -672,6 +704,56 @@ test("Liquid Shortcode Multiple Args", async (t) => {
       other: "howdy",
     }),
     "testhowdyZach"
+  );
+});
+
+test("Liquid Shortcode Keyword Arg", async (t) => {
+  let tr = getNewTemplateRender("liquid", "./test/stubs/");
+  tr.engine.addShortcode("postfixWithZach", function (str, kwargs) {
+    let { append } = kwargs && kwargs.__keywords === true ? kwargs : {};
+    return str + "Zach" + append;
+  });
+
+  t.is(
+    await tr._testRender("{% postfixWithZach name append=other %}", {
+      name: "test",
+      other: "howdy",
+    }),
+    "testZachhowdy"
+  );
+});
+
+test("Liquid Shortcode Multiple Keyword Args", async (t) => {
+  let tr = getNewTemplateRender("liquid", "./test/stubs/");
+  tr.engine.addShortcode("postfixWithZach", function (str, kwargs) {
+    let { prepend, append } = kwargs && kwargs.__keywords ? kwargs : {};
+    return prepend + str + "Zach" + append;
+  });
+
+  t.is(
+    await tr._testRender(
+      "{% postfixWithZach name prepend='string' append=other %}",
+      {
+        name: "test",
+        other: "howdy",
+      }
+    ),
+    "stringtestZachhowdy"
+  );
+});
+
+test("Liquid Shortcode Only Keyword Args", async (t) => {
+  let tr = getNewTemplateRender("liquid", "./test/stubs/");
+  tr.engine.addShortcode("postfixWithZach", function (kwargs) {
+    let { prepend, append } = kwargs && kwargs.__keywords ? kwargs : {};
+    return prepend + "Zach" + append;
+  });
+
+  t.is(
+    await tr._testRender("{% postfixWithZach prepend='string' append=name %}", {
+      name: "test",
+    }),
+    "stringZachtest"
   );
 });
 
