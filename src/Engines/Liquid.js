@@ -1,4 +1,4 @@
-const moo = require("moo");
+const argParser = require("liquid-args");
 const liquidLib = require("liquidjs");
 const TemplateEngine = require("./TemplateEngine");
 const TemplatePath = require("../TemplatePath");
@@ -13,14 +13,7 @@ class Liquid extends TemplateEngine {
     this.setLibrary(this.config.libraryOverrides.liquid);
     this.setLiquidOptions(this.config.liquidOptions);
 
-    this.argLexer = moo.compile({
-      number: /[0-9]+\.*[0-9]*/,
-      doubleQuoteString: /"(?:\\["\\]|[^\n"\\])*"/,
-      singleQuoteString: /'(?:\\['\\]|[^\n'\\])*'/,
-      keyword: /[a-zA-Z0-9.\-_]+/,
-      "ignore:whitespace": /[, \t]+/, // includes comma separator
-    });
-    this.cacheable = true;
+    this.argLexer = argParser;
   }
 
   setLibrary(lib) {
@@ -100,32 +93,9 @@ class Liquid extends TemplateEngine {
     }
   }
 
-  static async parseArguments(lexer, str, scope, engine) {
-    let argArray = [];
-
-    if (typeof str === "string") {
-      // TODO key=value key2=value
-      // TODO JSON?
-      lexer.reset(str);
-      let arg = lexer.next();
-      while (arg) {
-        /*{
-          type: 'doubleQuoteString',
-          value: '"test 2"',
-          text: '"test 2"',
-          toString: [Function: tokenToString],
-          offset: 0,
-          lineBreaks: 0,
-          line: 1,
-          col: 1 }*/
-        if (arg.type.indexOf("ignore:") === -1) {
-          argArray.push(await engine.evalValue(arg.value, scope));
-        }
-        arg = lexer.next();
-      }
-    }
-
-    return argArray;
+  static async parseArguments(lexer, args, scope, engine) {
+    const parse = (arg) => engine.evalValue(arg, scope);
+    return await Promise.all(lexer(args, parse));
   }
 
   static _normalizeShortcodeScope(ctx) {
