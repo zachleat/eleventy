@@ -354,6 +354,11 @@ class TemplateMap {
     await this.populateContentDataInMap(orderedMap);
 
     this.populateCollectionsWithContent();
+    await this.config.events.emit(
+      "collections",
+      this.generateCollectionsEventObject(this.collectionsData)
+    );
+
     this.cached = true;
 
     this.checkForDuplicatePermalinks();
@@ -362,6 +367,47 @@ class TemplateMap {
       "dependencyMap",
       this.generateDependencyMapEventObject(orderedMap)
     );
+  }
+
+  generateCollectionsEventObject(collectionsData = {}) {
+    let collections = {};
+
+    for (let name in collectionsData) {
+      // TODO not normal collections
+      if (Array.isArray(collectionsData[name])) {
+        collections[name] = [];
+        for (let entry of collectionsData[name]) {
+          if (isPlainObject(entry) && "inputPath" in entry) {
+            let item = {};
+            for (let key in entry) {
+              if (key === "template" || key === "templateContent") {
+                // do nothing
+              } else if (key === "_templateContent") {
+                item.templateContent = entry._templateContent;
+              } else if (key === "data") {
+                // Super limited copy of data
+                // Note: different from the standard build, `collections` are not available inside collections entries data objects for JSON stringify capability
+                item.data = {
+                  // collections,
+                  page: entry.data.page,
+                  eleventyNavigation: entry.data.eleventyNavigation,
+                };
+                // for(let dataKey in entry.data) {
+                //   if(dataKey !== "collections") {
+                //     item.data[dataKey] = entry.data[dataKey];
+                //   }
+                // }
+              } else {
+                item[key] = entry[key];
+              }
+            }
+            collections[name].push(item);
+          }
+        }
+      }
+    }
+
+    return collections;
   }
 
   generateDependencyMapEventObject(orderedMap) {
