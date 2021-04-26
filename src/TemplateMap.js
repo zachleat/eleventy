@@ -5,6 +5,7 @@ const EleventyErrorUtil = require("./EleventyErrorUtil");
 const UsingCircularTemplateContentReferenceError = require("./Errors/UsingCircularTemplateContentReferenceError");
 const debug = require("debug")("Eleventy:TemplateMap");
 const debugDev = require("debug")("Dev:Eleventy:TemplateMap");
+const getPaginationDataKey = require("./Util/GetPaginationDataKey");
 
 const EleventyBaseError = require("./EleventyBaseError");
 
@@ -78,16 +79,14 @@ class TemplateMap {
    */
   isPaginationOverAllCollections(entry) {
     if (entry.data.pagination && entry.data.pagination.data) {
-      return (
-        entry.data.pagination.data === "collections" ||
-        entry.data.pagination.data === "collections.all"
-      );
+      const key = getPaginationDataKey(entry.data);
+      return key === "collections" || key === "collections.all";
     }
   }
 
   getPaginationTagTarget(entry) {
     if (entry.data.pagination && entry.data.pagination.data) {
-      return this.getTagTarget(entry.data.pagination.data);
+      return this.getTagTarget(getPaginationDataKey(entry.data));
     }
   }
 

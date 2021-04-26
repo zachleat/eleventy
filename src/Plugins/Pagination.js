@@ -2,6 +2,7 @@ const lodashChunk = require("lodash/chunk");
 const lodashGet = require("lodash/get");
 const lodashSet = require("lodash/set");
 const EleventyBaseError = require("../EleventyBaseError");
+const getPaginationDataKey = require("../Util/GetPaginationDataKey");
 
 class PaginationConfigError extends EleventyBaseError {}
 class PaginationError extends EleventyBaseError {}
@@ -30,13 +31,13 @@ class Pagination {
     return Pagination.hasPagination(this.data);
   }
 
-  circularReferenceCheck(data) {
-    if (data.eleventyExcludeFromCollections) {
+  circularReferenceCheck() {
+    if (this.data.eleventyExcludeFromCollections) {
       return;
     }
 
-    let key = data.pagination.data;
-    let tags = data.tags || [];
+    let key = getPaginationDataKey(this.data);
+    let tags = this.data.tags || [];
     for (let tag of tags) {
       if (`collections.${tag}` === key) {
         throw new PaginationError(
@@ -63,7 +64,7 @@ class Pagination {
     } else if (!("size" in data.pagination)) {
       throw new Error("Missing pagination size in front matter data.");
     }
-    this.circularReferenceCheck(data);
+    this.circularReferenceCheck();
 
     this.size = data.pagination.size;
     this.alias = data.pagination.alias;
@@ -74,10 +75,6 @@ class Pagination {
 
   setTemplate(tmpl) {
     this.template = tmpl;
-  }
-
-  _getDataKey() {
-    return this.data.pagination.data;
   }
 
   doResolveToObjectValues() {
@@ -102,7 +99,7 @@ class Pagination {
 
   _resolveItems() {
     let notFoundValue = "__NOT_FOUND_ERROR__";
-    let key = this._getDataKey();
+    let key = getPaginationDataKey(this.data);
     let fullDataSet = lodashGet(this.data, key, notFoundValue);
     if (fullDataSet === notFoundValue) {
       throw new Error(
@@ -195,7 +192,7 @@ class Pagination {
 
       let override = {
         pagination: {
-          data: this.data.pagination.data,
+          data: getPaginationDataKey(this.data),
           size: this.data.pagination.size,
           alias: this.alias,
 
