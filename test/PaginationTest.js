@@ -654,6 +654,20 @@ test("Pagination `before` Callback with a Filter", async (t) => {
   t.deepEqual(templates[0].data.myalias, "item2");
 });
 
+test("Pagination `before` Callback with a Filter using `this` data", async (t) => {
+  let tmpl = getNewTemplate(
+    "./test/stubs/paged/paged-before-filter-this.njk",
+    "./test/stubs/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+  let templates = await tmpl.getTemplates(data);
+  t.is(templates.length, 2);
+  t.deepEqual(templates[0].data.pagination.items, ["foo"]);
+  t.deepEqual(templates[1].data.pagination.items, ["woo"]);
+});
+
 test("Pagination `before` Callback with `reverse: true` (test order of operations)", async (t) => {
   let tmpl = getNewTemplate(
     "./test/stubs/paged/paged-before-and-reverse.njk",

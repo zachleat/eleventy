@@ -126,7 +126,7 @@ class Pagination {
       typeof this.data.pagination.before === "function"
     ) {
       // we don’t need to make a copy of this because we already .filter() above
-      result = this.data.pagination.before(result);
+      result = this.data.pagination.before.bind(this)(result);
     }
 
     if (this.data.pagination.reverse === true) {

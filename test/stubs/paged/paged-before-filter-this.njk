@@ -1,0 +1,14 @@
+---js
+{
+  fooData: "moo",
+  pagination: {
+    data: "items",
+    size: 1,
+    before: function(data) {
+      return data.filter(item => item !== this.data.fooData);
+    }
+  },
+  items: ["foo", "moo", "woo"]
+}
+---
+<ol>{% for item in pagination.items %}<li>{{ item }}</li>{% endfor %}</ol>
