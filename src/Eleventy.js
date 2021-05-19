@@ -118,7 +118,6 @@ class Eleventy {
 
     /** @member {Object} - tbd. */
     this.watchTargets = new EleventyWatchTargets();
-    this.watchTargets.addAndMakeGlob(this.config.additionalWatchTargets);
     this.watchTargets.watchJavaScriptDependencies = this.config.watchJavaScriptDependencies;
   }
 
@@ -631,6 +630,8 @@ Arguments:
   async initWatch() {
     this.watchManager = new EleventyWatch();
     this.watchManager.incremental = this.isIncremental;
+
+    this.watchTargets.addAndMakeGlob(this.config.additionalWatchTargets);
 
     this.watchTargets.add(this.eleventyFiles.getGlobWatcherFiles());
 
