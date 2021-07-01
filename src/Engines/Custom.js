@@ -76,9 +76,9 @@ class CustomEngine extends TemplateEngine {
   async compile(str, inputPath, ...args) {
     await this._runningInit();
 
-    let defaultCompiler;
+    let defaultRenderer;
     if (this._defaultEngine) {
-      defaultCompiler = async (data) => {
+      defaultRenderer = async (data) => {
         const render = await this._defaultEngine.compile(
           str,
           inputPath,
@@ -89,16 +89,15 @@ class CustomEngine extends TemplateEngine {
     }
 
     // Fall back to default compiler if the user does not provide their own
-    if (!this.entry.compile && defaultCompiler) {
-      return defaultCompiler;
+    if (!this.entry.compile && defaultRenderer) {
+      return defaultRenderer;
     }
 
     // TODO generalize this (look at JavaScript.js)
     return this.entry.compile
-      // give the user access to this engine's default compiler, if any
-      .bind({ config: this.config, defaultCompiler })(str, inputPath)
-      // bind again for access inside function (data) {...}
-      .bind({ defaultCompiler });
+      .bind({ config: this.config })(str, inputPath)
+      // give the user access to this engine's default renderer, if any
+      .bind({ defaultRenderer });
   }
 
   get defaultTemplateFileExtension() {

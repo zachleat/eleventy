@@ -82,7 +82,7 @@ test("Custom Markdown Render with `compile` override + call to default compiler"
     key: "md",
     compile: function (str, inputPath) {
       return async function (data) {
-        const result = await this.defaultCompiler(data);
+        const result = await this.defaultRenderer(data);
         return `<custom-wrapper>${result.trim()}</custom-wrapper>`;
       };
     },
