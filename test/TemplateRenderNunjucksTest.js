@@ -545,6 +545,40 @@ test("Nunjucks Async Paired Shortcode", async (t) => {
   );
 });
 
+test("Nunjucks Nested Async Paired Shortcode", async (t) => {
+  t.plan(3);
+
+  let tr = getNewTemplateRender("njk", "./test/stubs/");
+  tr.engine.addPairedShortcode(
+    "postfixWithZach",
+    function (content, str) {
+      // Data in context
+      t.is(this.page.url, "/hi/");
+
+      return new Promise(function (resolve) {
+        setTimeout(function () {
+          resolve(str + content + "Zach");
+        });
+      });
+    },
+    true
+  );
+
+  t.is(
+    await tr._testRender(
+      "{% postfixWithZach name %}Content{% postfixWithZach name2 %}Content{% endpostfixWithZach %}{% endpostfixWithZach %}",
+      {
+        name: "test",
+        name2: "test2",
+        page: {
+          url: "/hi/",
+        },
+      }
+    ),
+    "testContenttest2ContentZachZach"
+  );
+});
+
 test("Nunjucks Paired Shortcode without args", async (t) => {
   let tr = getNewTemplateRender("njk", "./test/stubs/");
   tr.engine.addPairedShortcode("postfixWithZach", function (content) {

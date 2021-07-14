@@ -285,57 +285,68 @@ class Nunjucks extends TemplateEngine {
         var body = parser.parseUntilBlocks("end" + shortcodeName);
         parser.advanceAfterBlockEnd();
 
-        if (isAsync) {
-          return new nodes.CallExtensionAsync(this, "run", args, [body]);
-        }
-        return new nodes.CallExtension(this, "run", args, [body]);
+        return new nodes.CallExtensionAsync(this, "run", args, [body]);
       };
 
       this.run = function (...args) {
-        let resolve;
-        if (isAsync) {
-          resolve = args.pop();
-        }
+        let resolve = args.pop();
         let body = args.pop();
         let [context, ...argArray] = args;
 
-        if (isAsync) {
-          shortcodeFn
-            .call(
-              Nunjucks._normalizeShortcodeContext(context),
-              body(),
-              ...argArray
-            )
-            .then(function (returnValue) {
-              resolve(null, new NunjucksLib.runtime.SafeString(returnValue));
-            })
-            .catch(function (e) {
+        body(function (e, bodyContent) {
+          if (e) {
+            resolve(
+              new EleventyShortcodeError(
+                `Error with Nunjucks paired shortcode \`${shortcodeName}\`${EleventyErrorUtil.convertErrorToString(
+                  e
+                )}`
+              )
+            );
+          }
+
+          if (isAsync) {
+            shortcodeFn
+              .call(
+                Nunjucks._normalizeShortcodeContext(context),
+                bodyContent,
+                ...argArray
+              )
+              .then(function (returnValue) {
+                resolve(null, new NunjucksLib.runtime.SafeString(returnValue));
+              })
+              .catch(function (e) {
+                resolve(
+                  new EleventyShortcodeError(
+                    `Error with Nunjucks paired shortcode \`${shortcodeName}\`${EleventyErrorUtil.convertErrorToString(
+                      e
+                    )}`
+                  ),
+                  null
+                );
+              });
+          } else {
+            try {
+              resolve(
+                null,
+                new NunjucksLib.runtime.SafeString(
+                  shortcodeFn.call(
+                    Nunjucks._normalizeShortcodeContext(context),
+                    bodyContent,
+                    ...argArray
+                  )
+                )
+              );
+            } catch (e) {
               resolve(
                 new EleventyShortcodeError(
                   `Error with Nunjucks paired shortcode \`${shortcodeName}\`${EleventyErrorUtil.convertErrorToString(
                     e
                   )}`
-                ),
-                null
+                )
               );
-            });
-        } else {
-          try {
-            return new NunjucksLib.runtime.SafeString(
-              shortcodeFn.call(
-                Nunjucks._normalizeShortcodeContext(context),
-                body(),
-                ...argArray
-              )
-            );
-          } catch (e) {
-            throw new EleventyShortcodeError(
-              `Error with Nunjucks paired shortcode \`${shortcodeName}\`${EleventyErrorUtil.convertErrorToString(
-                e
-              )}`
-            );
+            }
           }
-        }
+        });
       };
     };
   }
