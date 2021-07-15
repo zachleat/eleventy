@@ -71,7 +71,7 @@ class Markdown extends TemplateEngine {
         return async function (data) {
           let fn = await fnReady;
           let preTemplateEngineRender = await fn(data);
-          let finishedRender = mdlib.render(preTemplateEngineRender, data);
+          let finishedRender = mdlib.render(preTemplateEngineRender,{inputPath:inputPath});
           return finishedRender;
         };
       }
