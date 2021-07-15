@@ -306,7 +306,11 @@ class Pagination {
     let hrefs = [];
     let overrides = [];
 
-    for (let pageNumber = 0, k = items.length; pageNumber < k; pageNumber++) {
+    const totalPages =
+      items.length ? items.length : (
+        this.data.pagination.pageOnEmptyData ? 1 : 0);
+
+    for (let pageNumber = 0; pageNumber < totalPages; pageNumber++) {
       let cloned = tmpl.clone();
 
       // TODO maybe also move this permalink additions up into the pagination class
