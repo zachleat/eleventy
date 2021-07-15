@@ -262,3 +262,54 @@ test("Test url filter with custom pathPrefix (no slash)", (t) => {
   t.is(url("./test/", "testdir"), "test/");
   t.is(url("../test/", "testdir"), "../test/");
 });
+
+test("Test url filter with custom pathPrefix (absolute url)", (t) => {
+  t.is(url("test", "https://example.com"), "https://example.com/test");
+  t.is(url("/test", "https://example.com"), "https://example.com/test");
+  t.is(url("//test", "https://example.com"), "https://example.com/test");
+
+  // plain http
+  t.is(url("test", "http://example.com"), "http://example.com/test");
+  t.is(url("/test", "http://example.com"), "http://example.com/test");
+  t.is(url("//test", "http://example.com"), "http://example.com/test");
+});
+
+test("Test url filter with custom pathPrefix (absolute url with trailing slash)", (t) => {
+  t.is(url("test", "https://example.com/"), "https://example.com/test");
+  t.is(url("/test", "https://example.com/"), "https://example.com/test");
+  t.is(url("//test", "https://example.com/"), "https://example.com/test");
+
+  // plain http
+  t.is(url("test", "http://example.com/"), "http://example.com/test");
+  t.is(url("/test", "http://example.com/"), "http://example.com/test");
+  t.is(url("//test", "http://example.com/"), "http://example.com/test");
+});
+
+test("Test url filter with custom pathPrefix (absolute url with path)", (t) => {
+  t.is(
+    url("test", "https://example.com/prefix"),
+    "https://example.com/prefix/test"
+  );
+  t.is(
+    url("/test", "https://example.com/prefix"),
+    "https://example.com/prefix/test"
+  );
+  t.is(
+    url("//test", "https://example.com/prefix"),
+    "https://example.com/prefix/test"
+  );
+
+  // plain http
+  t.is(
+    url("test", "http://example.com/prefix"),
+    "http://example.com/prefix/test"
+  );
+  t.is(
+    url("/test", "http://example.com/prefix"),
+    "http://example.com/prefix/test"
+  );
+  t.is(
+    url("//test", "http://example.com/prefix"),
+    "http://example.com/prefix/test"
+  );
+});

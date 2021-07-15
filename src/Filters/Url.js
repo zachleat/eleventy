@@ -22,6 +22,24 @@ module.exports = function (url, pathPrefix) {
   }
 
   let normUrl = TemplatePath.normalizeUrlPath(url);
+
+  if (pathPrefix.startsWith("https://") || pathPrefix.startsWith("http://")) {
+    // if pathPrefix is an absolute URL, normalize a trailing slash and resolve
+    // with url. Standard path normalization can't be used here as it doesn't
+    // comprehend URLs
+    let isUrlLeadingSlash = normUrl.startsWith("/");
+    let isPathPrefixTrailingSlash = pathPrefix.endsWith("/");
+    if (isUrlLeadingSlash && isPathPrefixTrailingSlash) {
+      // remove leading slash from url to join with trailing slash of pathPrefix
+      return `${pathPrefix}${normUrl.slice(1)}`;
+    }
+    if (!isUrlLeadingSlash && !isPathPrefixTrailingSlash) {
+      // add joining slash to normalize
+      return `${pathPrefix}/${normUrl}`;
+    }
+    return `${pathPrefix}${normUrl}`;
+  }
+
   let normRootDir = TemplatePath.normalizeUrlPath("/", pathPrefix);
   let normFull = TemplatePath.normalizeUrlPath("/", pathPrefix, url);
   let isRootDirTrailingSlash =
