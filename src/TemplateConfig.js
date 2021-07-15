@@ -208,7 +208,7 @@ class TemplateConfig {
         // TODO the error message here is bad and I feel bad (needs more accurate info)
         throw new EleventyConfigError(
           `Error in your Eleventy config file '${path}'.` +
-            (err.message.includes("Cannot find module")
+            (err.message && err.message.includes("Cannot find module")
               ? chalk.blueBright(" You may need to run `npm install`.")
               : ""),
           err
