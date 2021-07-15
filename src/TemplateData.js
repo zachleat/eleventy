@@ -344,10 +344,24 @@ class TemplateData {
       return localData;
     }
 
+    let dataSource = {};
     for (let path of localDataPaths) {
       // clean up data for template/directory data files only.
       let dataForPath = await this.getDataValue(path, null, true);
       let cleanedDataForPath = TemplateData.cleanupData(dataForPath);
+
+      for (const key in cleanedDataForPath) {
+        if (dataSource.hasOwnProperty(key)) {
+          debugWarn(
+            "overwriting '%s' with data from '%s'. Previous data location was %s",
+            key,
+            path,
+            dataSource[key]
+          );
+        }
+        dataSource[key] = path;
+      }
+
       TemplateData.mergeDeep(this.config, localData, cleanedDataForPath);
       // debug("`combineLocalData` (iterating) for %o: %O", path, localData);
     }
