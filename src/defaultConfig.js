@@ -49,6 +49,8 @@ module.exports = function (config) {
     dataTemplateEngine: false, // change in 1.0
     htmlOutputSuffix: "-o",
     jsDataFileSuffix: ".11tydata",
+    jsDataFileBase: null,
+    // set to 'index': in every folder use datafiles 'index.11tydata.json' et al
     keys: {
       package: "pkg",
       layout: "layout",
