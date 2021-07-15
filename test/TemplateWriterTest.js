@@ -704,10 +704,10 @@ test("Passthrough file output", async (t) => {
 
   let eleventyConfig = new TemplateConfig();
   eleventyConfig.userConfig.passthroughCopies = {
-    "./test/stubs/template-passthrough/static": true,
-    "./test/stubs/template-passthrough/static/": "./",
-    "./test/stubs/template-passthrough/static/**/*": "./all/",
-    "./test/stubs/template-passthrough/static/**/*.js": "./js/",
+    "./test/stubs/template-passthrough/static": { outputPath: true, copyOptions: {} },
+    "./test/stubs/template-passthrough/static/": { outputPath: "./", copyOptions: {} },
+    "./test/stubs/template-passthrough/static/**/*": { outputPath: "./all/", copyOptions: {} },
+    "./test/stubs/template-passthrough/static/**/*.js": { outputPath: "./js/", copyOptions: {} },
   };
 
   let tw = new TemplateWriter(

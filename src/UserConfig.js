@@ -341,14 +341,20 @@ class UserConfig {
    *
    * @param {string|object} fileOrDir The path to the file or directory that should
    * be copied. OR an object where the key is the input glob and the property is the output directory
+   * @param {object} copyOptions options for recursive-copy.
+   * see https://www.npmjs.com/package/recursive-copy#arguments
+   * default options are defined in TemplatePassthrough copyOptionsDefault
    * @returns {any} a reference to the `EleventyConfig` object.
    * @memberof EleventyConfig
    */
-  addPassthroughCopy(fileOrDir) {
+  addPassthroughCopy(fileOrDir, copyOptions = {}) {
     if (typeof fileOrDir === "string") {
-      this.passthroughCopies[fileOrDir] = true;
+      const inputPath = fileOrDir;
+      this.passthroughCopies[inputPath] = { outputPath: true, copyOptions };
     } else {
-      Object.assign(this.passthroughCopies, fileOrDir);
+      for (const [inputPath, outputPath] of Object.entries(fileOrDir)) {
+        this.passthroughCopies[inputPath] = { outputPath, copyOptions };
+      }
     }
 
     return this;

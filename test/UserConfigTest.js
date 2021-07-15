@@ -95,7 +95,7 @@ test("Set manual Pass-through File Copy (single call)", (t) => {
   let userCfg = new UserConfig();
   userCfg.addPassthroughCopy("img");
 
-  t.is(userCfg.passthroughCopies["img"], true);
+  t.deepEqual(userCfg.passthroughCopies["img"], { outputPath: true, copyOptions: {} });
 });
 
 test("Set manual Pass-through File Copy (chained calls)", (t) => {
@@ -106,10 +106,10 @@ test("Set manual Pass-through File Copy (chained calls)", (t) => {
     .addPassthroughCopy({ "./src/static": "static" })
     .addPassthroughCopy({ "./src/empty": "./" });
 
-  t.is(userCfg.passthroughCopies["css"], true);
-  t.is(userCfg.passthroughCopies["js"], true);
-  t.is(userCfg.passthroughCopies["./src/static"], "static");
-  t.is(userCfg.passthroughCopies["./src/empty"], "./");
+  t.deepEqual(userCfg.passthroughCopies["css"], { outputPath: true, copyOptions: {} });
+  t.deepEqual(userCfg.passthroughCopies["js"], { outputPath: true, copyOptions: {} });
+  t.deepEqual(userCfg.passthroughCopies["./src/static"], { outputPath: "static", copyOptions: {} });
+  t.deepEqual(userCfg.passthroughCopies["./src/empty"], { outputPath: "./", copyOptions: {} });
 });
 
 test("Set manual Pass-through File Copy (glob patterns)", (t) => {
@@ -124,8 +124,8 @@ test("Set manual Pass-through File Copy (glob patterns)", (t) => {
   t.is(userCfg.passthroughCopies["js/**"], undefined);
 
   // exists
-  t.is(userCfg.passthroughCopies["./src/static/**/*"], "renamed");
-  t.is(userCfg.passthroughCopies["./src/markdown/*.md"], "");
+  t.deepEqual(userCfg.passthroughCopies["./src/static/**/*"], { outputPath: "renamed", copyOptions: {} });
+  t.deepEqual(userCfg.passthroughCopies["./src/markdown/*.md"], { outputPath: "", copyOptions: {} });
 });
 
 test("Set Template Formats (string)", (t) => {

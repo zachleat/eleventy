@@ -21,6 +21,8 @@ class TemplatePassthrough {
     this.outputPath = path.outputPath;
     this.outputDir = outputDir;
 
+    this.copyOptions = path.copyOptions; // custom options for recursive-copy
+
     this.isDryRun = false;
   }
 
@@ -124,12 +126,19 @@ class TemplatePassthrough {
       });
     }
 
-    const copyOptions = {
-      overwrite: true,
-      dot: true,
-      junk: false,
+    // default options for recursive-copy
+    // see https://www.npmjs.com/package/recursive-copy#arguments
+    const copyOptionsDefault = {
+      overwrite: true, // overwrite output. fails when input is directory (mkdir) and output is file
+      dot: true, // copy dotfiles
+      junk: false, // copy cache files like Thumbs.db
       results: false,
+      expand: false, // follow symlinks
+      debug: false,
     };
+
+    const copyOptions = Object.assign(copyOptionsDefault, this.copyOptions);
+
     let promises = [];
 
     debug("Copying %o", this.inputPath);
