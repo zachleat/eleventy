@@ -10,6 +10,8 @@ class CustomEngine extends TemplateEngine {
       "init" in this.entry && typeof this.entry.init === "function";
     this.initStarted = false;
     this.initFinished = false;
+
+    this._defaultEngine = undefined;
   }
 
   getExtensionMapEntry() {
@@ -24,6 +26,10 @@ class CustomEngine extends TemplateEngine {
     throw Error(
       `Could not find a custom extension for ${this.name}. Did you add it to your config file?`
     );
+  }
+
+  setDefaultEngine(defaultEngine) {
+    this._defaultEngine = defaultEngine;
   }
 
   needsToReadFileContents() {
@@ -67,11 +73,31 @@ class CustomEngine extends TemplateEngine {
     }
   }
 
-  async compile(str, inputPath) {
+  async compile(str, inputPath, ...args) {
     await this._runningInit();
 
+    let defaultRenderer;
+    if (this._defaultEngine) {
+      defaultRenderer = async (data) => {
+        const render = await this._defaultEngine.compile(
+          str,
+          inputPath,
+          ...args
+        );
+        return await render(data);
+      };
+    }
+
+    // Fall back to default compiler if the user does not provide their own
+    if (!this.entry.compile && defaultRenderer) {
+      return defaultRenderer;
+    }
+
     // TODO generalize this (look at JavaScript.js)
-    return this.entry.compile.bind({ config: this.config })(str, inputPath);
+    return this.entry.compile
+      .bind({ config: this.config })(str, inputPath)
+      // give the user access to this engine's default renderer, if any
+      .bind({ defaultRenderer });
   }
 
   get defaultTemplateFileExtension() {

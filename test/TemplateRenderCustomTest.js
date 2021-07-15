@@ -34,6 +34,70 @@ test("Custom plaintext Render", async (t) => {
   t.is(await fn({}), "<p>Paragraph</p>");
 });
 
+test("Custom Markdown Render with `compile` override", async (t) => {
+  let eleventyConfig = new TemplateConfig();
+
+  eleventyConfig.userConfig.extensionMap.add({
+    extension: "md",
+    key: "md",
+    compile: function (str, inputPath) {
+      return function (data) {
+        return `<not-markdown>${str.trim()}</not-markdown>`;
+      };
+    },
+  });
+
+  let tr = getNewTemplateRender("md", null, eleventyConfig);
+
+  let fn = await tr.getCompiledTemplate("# Markdown?");
+  t.is((await fn()).trim(), "<not-markdown># Markdown?</not-markdown>");
+  t.is((await fn({})).trim(), "<not-markdown># Markdown?</not-markdown>");
+});
+
+test("Custom Markdown Render without `compile` override", async (t) => {
+  let eleventyConfig = new TemplateConfig();
+  let initCalled = false;
+
+  eleventyConfig.userConfig.extensionMap.add({
+    extension: "md",
+    key: "md",
+    init: function () {
+      initCalled = true;
+    },
+  });
+
+  let tr = getNewTemplateRender("md", null, eleventyConfig);
+
+  let fn = await tr.getCompiledTemplate("# Header");
+  t.is(initCalled, true);
+  t.is((await fn()).trim(), "<h1>Header</h1>");
+  t.is((await fn({})).trim(), "<h1>Header</h1>");
+});
+
+test("Custom Markdown Render with `compile` override + call to default compiler", async (t) => {
+  let eleventyConfig = new TemplateConfig();
+
+  eleventyConfig.userConfig.extensionMap.add({
+    extension: "md",
+    key: "md",
+    compile: function (str, inputPath) {
+      return async function (data) {
+        const result = await this.defaultRenderer(data);
+        return `<custom-wrapper>${result.trim()}</custom-wrapper>`;
+      };
+    },
+  });
+
+  let tr = getNewTemplateRender("md", null, eleventyConfig);
+
+  let fn = await tr.getCompiledTemplate("Hey {{name}}");
+  t.is((await fn()).trim(), "<custom-wrapper><p>Hey</p></custom-wrapper>");
+  t.is(
+    (await fn({ name: "Zach" })).trim(),
+    "<custom-wrapper><p>Hey Zach</p></custom-wrapper>"
+  );
+});
+
 test("Custom Vue Render", async (t) => {
   let tr = getNewTemplateRender("vue");
 

@@ -49,6 +49,33 @@ class TemplateEngineManager {
     return !!this.getClassNameFromTemplateKey(name);
   }
 
+  getEngineClassByExtension(extension) {
+    // We include these as raw strings (and not more readable variables) so they’re parsed by the bundler.
+    if (extension === "ejs") {
+      return require("./Engines/Ejs");
+    } else if (extension === "md") {
+      return require("./Engines/Markdown");
+    } else if (extension === "html") {
+      return require("./Engines/Html");
+    } else if (extension === "hbs") {
+      return require("./Engines/Handlebars");
+    } else if (extension === "mustache") {
+      return require("./Engines/Mustache");
+    } else if (extension === "haml") {
+      return require("./Engines/Haml");
+    } else if (extension === "pug") {
+      return require("./Engines/Pug");
+    } else if (extension === "njk") {
+      return require("./Engines/Nunjucks");
+    } else if (extension === "liquid") {
+      return require("./Engines/Liquid");
+    } else if (extension === "11ty.js") {
+      return require("./Engines/JavaScript");
+    } else {
+      return require("./Engines/Custom");
+    }
+  }
+
   getEngine(name, includesDir, extensionMap) {
     if (!this.hasEngine(name)) {
       throw new Error(
@@ -60,35 +87,31 @@ class TemplateEngineManager {
       return this.engineCache[name];
     }
 
-    let cls;
-    // We include these as raw strings (and not more readable variables) so they’re parsed by the bundler.
-    if (name === "ejs") {
-      cls = require("./Engines/Ejs");
-    } else if (name === "md") {
-      cls = require("./Engines/Markdown");
-    } else if (name === "html") {
-      cls = require("./Engines/Html");
-    } else if (name === "hbs") {
-      cls = require("./Engines/Handlebars");
-    } else if (name === "mustache") {
-      cls = require("./Engines/Mustache");
-    } else if (name === "haml") {
-      cls = require("./Engines/Haml");
-    } else if (name === "pug") {
-      cls = require("./Engines/Pug");
-    } else if (name === "njk") {
-      cls = require("./Engines/Nunjucks");
-    } else if (name === "liquid") {
-      cls = require("./Engines/Liquid");
-    } else if (name === "11ty.js") {
-      cls = require("./Engines/JavaScript");
-    } else {
-      cls = require("./Engines/Custom");
-    }
+    let cls = this.getEngineClassByExtension(name);
 
     let instance = new cls(name, includesDir, this.config);
     instance.extensionMap = extensionMap;
     instance.engineManager = this;
+
+    // If the user providers a "Custom" engine using addExtension,
+    // But that engine's instance is *not* custom,
+    // The user must be overriding an existing engine
+    // i.e. addExtension('md', { ...overrideBehavior })
+    if (
+      this.getClassNameFromTemplateKey(name) === "Custom" &&
+      instance.constructor.name !== "CustomEngine"
+    ) {
+      const CustomEngine = require("./Engines/Custom");
+      const overrideCustomEngine = new CustomEngine(
+        name,
+        includesDir,
+        this.config
+      );
+      // Keep track of the "default" engine 11ty would normally use
+      // This allows the user to access the default engine in their override
+      overrideCustomEngine.setDefaultEngine(instance);
+      instance = overrideCustomEngine;
+    }
 
     // Make sure cache key is based on name and not path
     // Custom class is used for all plugins, cache once per plugin
